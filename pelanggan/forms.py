@@ -1,0 +1,72 @@
+from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import get_user_model
+
+from administrator.models import Pesanan, Pembayaran
+
+User = get_user_model()
+
+
+class RegistrasiPelangganForm(UserCreationForm):
+    """
+    Form registrasi untuk pelanggan baru.
+    Field sesuai alur bisnis: nama lengkap, username, email, nomor telepon, password, konfirmasi password.
+    Role otomatis 'pelanggan' dan is_approved=False (status: Menunggu Persetujuan).
+    """
+    nama_lengkap = forms.CharField(
+        label="Nama Lengkap",
+        max_length=150,
+        widget=forms.TextInput(attrs={'placeholder': 'Nama lengkap sesuai identitas'}),
+    )
+    email = forms.EmailField(required=True)
+    no_telepon = forms.CharField(max_length=20, required=True, label="Nomor Telepon")
+
+    password1 = forms.CharField(
+        label="Kata sandi",
+        widget=forms.PasswordInput(attrs={'placeholder': 'Minimal 8 karakter'}),
+    )
+    password2 = forms.CharField(
+        label="Konfirmasi kata sandi",
+        widget=forms.PasswordInput(attrs={'placeholder': 'Ulangi kata sandi'}),
+    )
+
+    class Meta:
+        model = User
+        fields = ['nama_lengkap', 'username', 'email', 'no_telepon', 'password1', 'password2']
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.role = User.Role.PELANGGAN
+        user.is_approved = False
+        user.email = self.cleaned_data['email']
+        user.no_telepon = self.cleaned_data['no_telepon']
+        user.first_name = self.cleaned_data['nama_lengkap']
+        if commit:
+            user.save()
+        return user
+
+
+class PemesananForm(forms.ModelForm):
+    class Meta:
+        model = Pesanan
+        fields = [
+            'menu', 'jenis_catering', 'nama_pemesan', 'alamat', 'no_telepon',
+            'waktu_acara', 'jumlah_porsi', 'catatan_tambahan',
+        ]
+        widgets = {
+            'alamat': forms.Textarea(attrs={'rows': 2}),
+            'catatan_tambahan': forms.Textarea(attrs={'rows': 2}),
+            'waktu_acara': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # hanya tampilkan menu yang stoknya tersedia
+        from administrator.models import Menu
+        self.fields['menu'].queryset = Menu.objects.filter(status_stok=Menu.StatusStok.TERSEDIA)
+
+
+class PembayaranForm(forms.ModelForm):
+    class Meta:
+        model = Pembayaran
+        fields = ['metode', 'jumlah_bayar', 'bukti_bayar']

@@ -1,0 +1,163 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Masuk — Meja Nusantara</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
+<style>
+  body { margin: 0; }
+  .login-shell { display: flex; min-height: 100vh; }
+
+  .login-hero {
+    flex: 1.1;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 56px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+  .login-hero::after {
+    content: '';
+    position: absolute; right: -80px; top: -80px;
+    width: 260px; height: 260px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(198,149,47,0.18), transparent 70%);
+  }
+  .hero-brand { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; }
+  .hero-brand span { color: var(--gold); }
+
+  .hero-headline {
+    font-family: 'Fraunces', serif;
+    font-size: 42px;
+    font-weight: 600;
+    line-height: 1.15;
+    max-width: 480px;
+    margin: 0;
+  }
+  .hero-headline em { color: var(--gold); font-style: normal; }
+
+  .menu-strip {
+    display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px;
+  }
+  .menu-chip {
+    border: 1px solid rgba(246,241,231,0.25);
+    padding: 8px 14px; border-radius: 100px;
+    font-size: 13px; color: rgba(246,241,231,0.85);
+  }
+
+  .hero-foot { font-size: 13px; color: rgba(246,241,231,0.55); }
+
+  .login-panel {
+    flex: 1;
+    display: flex; align-items: center; justify-content: center;
+    padding: 40px;
+  }
+  .login-card { width: 100%; max-width: 380px; }
+  .login-card .ticket-body { padding: 32px 30px; }
+
+  .login-card h1 { font-size: 26px; margin-bottom: 4px; }
+  .login-card .sub { color: var(--text-muted); font-size: 14px; margin-bottom: 26px; }
+
+  .login-foot { margin-top: 20px; font-size: 14px; text-align: center; color: var(--text-muted); }
+
+  @media (max-width: 860px) {
+    .login-shell { flex-direction: column; }
+    .login-hero { padding: 36px; }
+    .hero-headline { font-size: 30px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="login-shell">
+  <div class="login-hero">
+    <div>
+      <div class="hero-brand">Meja <span>Nusantara</span></div>
+      <h1 class="hero-headline">Satu meja,<br><em>empat rasa dunia.</em></h1>
+      <div class="menu-strip">
+        <span class="menu-chip">Nusantara</span>
+        <span class="menu-chip">Korea</span>
+        <span class="menu-chip">Thailand</span>
+        <span class="menu-chip">Chinese</span>
+      </div>
+    </div>
+    <div class="hero-foot">Pesan katering untuk acara Anda — prasmanan, nasi box, hingga snack box.</div>
+  </div>
+
+  <div class="login-panel">
+    <div class="ticket login-card">
+      <div class="ticket-perf"></div>
+      <div class="ticket-body">
+        <h1>Masuk akun</h1>
+        <div class="sub">Kelola atau pesan katering Anda di sini.</div>
+
+        {% if messages %}
+          {% for message in messages %}
+            <div class="panel {% if message.tags == 'success' %}msg-success{% else %}msg-error{% endif %}" style="padding: 12px 16px; margin-bottom: 18px; font-size: 14px;">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+
+        <form method="post">
+          {% csrf_token %}
+          <div class="field">
+            <label for="id_username">Username</label>
+            <input type="text" name="username" id="id_username" placeholder="Masukkan username" required autofocus>
+          </div>
+          <div class="field">
+            <label for="id_password">Kata sandi</label>
+            <div class="password-field">
+              <input type="password" name="password" id="id_password" placeholder="Masukkan kata sandi" required>
+              <button type="button" class="password-toggle" data-toggle-for="id_password" aria-label="Tampilkan kata sandi">
+                <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                  <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a18.6 18.6 0 0 1 4.22-5.06M9.9 4.24A10.4 10.4 0 0 1 12 4c7 0 11 7 11 7a18.6 18.6 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; margin-top: 6px;">
+            Masuk
+          </button>
+        </form>
+
+        <div class="login-foot">
+          Belum punya akun? <a href="{% url 'pelanggan:register' %}">Daftar sebagai pelanggan</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.password-toggle').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var input = document.getElementById(btn.dataset.toggleFor);
+      var eye = btn.querySelector('.icon-eye');
+      var eyeOff = btn.querySelector('.icon-eye-off');
+      if (input.type === 'password') {
+        input.type = 'text';
+        eye.style.display = 'none';
+        eyeOff.style.display = 'block';
+      } else {
+        input.type = 'password';
+        eye.style.display = 'block';
+        eyeOff.style.display = 'none';
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

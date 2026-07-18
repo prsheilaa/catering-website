@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Approval Pelanggan — Meja Nusantara{% endblock %}
+{% block brand_sub %}petugas{% endblock %}
+{% block topbar_title %}Approval Pelanggan{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-group">
+  <div class="nav-label">Ringkasan</div>
+  <a class="nav-link" href="{% url 'petugas:dashboard' %}">Dashboard</a>
+</div>
+<div class="nav-group">
+  <div class="nav-label">Registrasi</div>
+  <a class="nav-link active" href="{% url 'petugas:pelanggan_pending' %}">Approval pelanggan</a>
+</div>
+<div class="nav-group">
+  <div class="nav-label">Pembayaran</div>
+  <a class="nav-link" href="{% url 'petugas:pembayaran_pending' %}">Verifikasi pembayaran</a>
+</div>
+<div class="nav-group">
+  <div class="nav-label">Pesanan</div>
+  <a class="nav-link" href="{% url 'petugas:pesanan_diproses' %}">Pesanan diproses</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<h1>Approval Registrasi Pelanggan</h1>
+<p style="color: var(--text-muted); margin-top: -8px; margin-bottom: 24px;">
+  Setujui atau tolak pelanggan baru yang mendaftar sebelum mereka bisa login.
+</p>
+
+<div class="panel">
+  {% if page_obj %}
+  <table class="data">
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Nama Lengkap</th>
+        <th>Email</th>
+        <th>No. telepon</th>
+        <th>Status</th>
+        <th>Tanggal daftar</th>
+        <th style="text-align:right;">Aksi</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for pelanggan in page_obj %}
+      <tr>
+        <td><strong>{{ pelanggan.username }}</strong></td>
+        <td>{{ pelanggan.first_name|default:"-" }}</td>
+        <td>{{ pelanggan.email|default:"-" }}</td>
+        <td>{{ pelanggan.no_telepon|default:"-" }}</td>
+        <td><span class="badge menunggu">{{ pelanggan.status_akun }}</span></td>
+        <td>{{ pelanggan.date_joined|date:"d M Y, H:i" }}</td>
+        <td style="text-align:right; white-space:nowrap;">
+          <form method="post" action="{% url 'petugas:approve_pelanggan' pelanggan.pk %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary" style="padding:6px 14px; font-size:13px;">Setujui</button>
+          </form>
+          <form method="post" action="{% url 'petugas:tolak_pelanggan' pelanggan.pk %}" style="display:inline;"
+                onsubmit="return confirm('Tolak registrasi {{ pelanggan.username }}? Data akan dihapus permanen.');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-ghost" style="padding:6px 14px; font-size:13px; color: var(--danger);">Tolak</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if page_obj.has_other_pages %}
+  <div style="display:flex; gap:8px; margin-top:18px; justify-content:center;">
+    {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-ghost" style="padding:6px 14px;">&larr;</a>
+    {% endif %}
+    <span style="align-self:center; font-size:13px; color: var(--text-muted);">Halaman {{ page_obj.number }} dari {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}" class="btn btn-ghost" style="padding:6px 14px;">&rarr;</a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% else %}
+  <p style="color: var(--text-muted); text-align:center; padding: 30px 0;">Tidak ada registrasi yang menunggu persetujuan.</p>
+  {% endif %}
+</div>
+{% endblock %}

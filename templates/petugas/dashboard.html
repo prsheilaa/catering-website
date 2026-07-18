@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Dashboard petugas — Meja Nusantara{% endblock %}
+{% block brand_sub %}petugas{% endblock %}
+{% block topbar_title %}Dashboard{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-group">
+  <div class="nav-label">Ringkasan</div>
+  <a class="nav-link active" href="{% url 'petugas:dashboard' %}">Dashboard</a>
+</div>
+<div class="nav-group">
+  <div class="nav-label">Registrasi</div>
+  <a class="nav-link" href="{% url 'petugas:pelanggan_pending' %}">Approval pelanggan</a>
+</div>
+<div class="nav-group">
+  <div class="nav-label">Pembayaran</div>
+  <a class="nav-link" href="{% url 'petugas:pembayaran_pending' %}">Verifikasi pembayaran</a>
+</div>
+<div class="nav-group">
+  <div class="nav-label">Pesanan</div>
+  <a class="nav-link" href="{% url 'petugas:pesanan_diproses' %}">Pesanan diproses</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<h1>Selamat datang, {{ request.user.username }}</h1>
+<p style="color: var(--text-muted); margin-top: -8px; margin-bottom: 28px;">
+  Ringkasan tugas operasional yang perlu ditindaklanjuti hari ini.
+</p>
+
+<div class="stat-grid" style="grid-template-columns: repeat(3, 1fr);">
+  <div class="ticket stat-card">
+    <div class="ticket-perf"></div>
+    <div class="ticket-body">
+      <div class="stat-label">Registrasi menunggu persetujuan</div>
+      <div class="stat-value accent">{{ pelanggan_pending }}</div>
+    </div>
+  </div>
+
+  <div class="ticket stat-card">
+    <div class="ticket-perf"></div>
+    <div class="ticket-body">
+      <div class="stat-label">Pembayaran menunggu verifikasi</div>
+      <div class="stat-value accent">{{ pembayaran_menunggu }}</div>
+    </div>
+  </div>
+
+  <div class="ticket stat-card">
+    <div class="ticket-perf"></div>
+    <div class="ticket-body">
+      <div class="stat-label">Pesanan sedang diproses</div>
+      <div class="stat-value">{{ pesanan_diproses }}</div>
+    </div>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+
+  <div class="panel">
+    <div class="panel-head">
+      <h3 style="margin:0;">Registrasi pelanggan</h3>
+      {% if pelanggan_pending > 0 %}
+        <span class="badge menunggu">{{ pelanggan_pending }} menunggu</span>
+      {% endif %}
+    </div>
+    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 16px;">
+      Setujui pelanggan baru sebelum mereka bisa login dan memesan katering.
+    </p>
+    <a href="{% url 'petugas:pelanggan_pending' %}" class="btn btn-primary">Tinjau registrasi</a>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <h3 style="margin:0;">Verifikasi pembayaran</h3>
+      {% if pembayaran_menunggu > 0 %}
+        <span class="badge menunggu">{{ pembayaran_menunggu }} menunggu</span>
+      {% endif %}
+    </div>
+    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 16px;">
+      Periksa bukti pembayaran yang diunggah pelanggan, tandai valid atau tidak valid.
+    </p>
+    <a href="{% url 'petugas:pembayaran_pending' %}" class="btn btn-primary">Verifikasi sekarang</a>
+  </div>
+
+</div>
+
+<div class="panel" style="margin-top: 20px;">
+  <div class="panel-head">
+    <h3 style="margin:0;">Pesanan sedang diproses</h3>
+    <a href="{% url 'petugas:pesanan_diproses' %}" class="btn btn-ghost">Lihat semua</a>
+  </div>
+  <p style="color: var(--text-muted); font-size: 14px; margin: 0;">
+    Ada {{ pesanan_diproses }} pesanan yang sedang berjalan menuju hari acara. Tandai selesai setelah acara berlangsung.
+  </p>
+</div>
+{% endblock %}
