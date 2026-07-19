@@ -143,130 +143,117 @@ Aksi
 
 <tbody>
 
-{% for kategori in page_obj %}
-
-<tr>
-
+    {% for kategori in page_obj %}
+    
+    <tr>
+    
+    <td>{{ forloop.counter }}</td>
+    
     <td>
-
-        {{ forloop.counter }}
-
+    
+    <strong>{{ kategori.nama }}</strong>
+    
     </td>
-
+    
     <td>
-
-        <strong>
-
-            {{ kategori.nama }}
-
-        </strong>
-
+    
+    {{ kategori.deskripsi|default:"-" }}
+    
     </td>
-
+    
     <td>
-
-        {% if kategori.deskripsi %}
-
-            {{ kategori.deskripsi|truncatechars:70 }}
-
-        {% else %}
-
-            <span style="color:#999;">
-
-                Tidak ada deskripsi
-
-            </span>
-
-        {% endif %}
-
+    
+    {% if kategori.is_active %}
+    
+    <span class="badge selesai">
+    
+    Aktif
+    
+    </span>
+    
+    {% else %}
+    
+    <span class="badge dibatalkan">
+    
+    Nonaktif
+    
+    </span>
+    
+    {% endif %}
+    
     </td>
-
+    
     <td>
-
-        {% if kategori.is_active %}
-
-            <span class="badge selesai">
-
-                Aktif
-
-            </span>
-
-        {% else %}
-
-            <span class="badge dibatalkan">
-
-                Nonaktif
-
-            </span>
-
-        {% endif %}
-
+    
+    <a href="{% url 'administrator:kategori_edit' kategori.pk %}"
+    class="btn btn-gold">
+    
+    Edit
+    
+    </a>
+    
+    <a href="{% url 'administrator:kategori_hapus' kategori.pk %}"
+    class="btn btn-ghost">
+    
+    Hapus
+    
+    </a>
+    
     </td>
-
-    <td>
-
-        <a
-        href="{% url 'administrator:kategori_edit' kategori.pk %}"
-        class="btn btn-gold">
-
-            Edit
-
-        </a>
-
-        <a
-        href="{% url 'administrator:kategori_hapus' kategori.pk %}"
-        class="btn btn-ghost"
-        onclick="return confirm('Yakin ingin menghapus kategori ini?')">
-
-            Hapus
-
-        </a>
-
+    
+    </tr>
+    
+    {% empty %}
+    
+    <tr>
+    
+    <td colspan="5">
+    
+    Belum ada kategori.
+    
     </td>
-
-</tr>
-
-{% empty %}
-
-<tr>
-
-<td colspan="5" style="text-align:center;padding:45px;">
-
-<img
-src="{% static 'images/empty-category.svg' %}"
-style="width:140px;opacity:.9;">
-
-<br><br>
-
-<h3>
-
-Belum Ada Kategori
-
-</h3>
-
-<p style="color:#777;">
-
-Silakan tambahkan kategori menu terlebih dahulu.
-
-</p>
-
-<a
-href="{% url 'administrator:kategori_tambah' %}"
-class="btn btn-primary">
-
-Tambah Kategori
-
-</a>
-
-</td>
-
-</tr>
-
-{% endfor %}
-
-</tbody>
+    
+    </tr>
+    
+    {% endfor %}
+    
+    </tbody>
 
 </table>
+
+{% if page_obj.paginator.count %}
+
+<div class="pagination">
+
+{% if page_obj.has_previous %}
+
+<a href="?page=1&q={{ q }}">Awal</a>
+
+<a href="?page={{ page_obj.previous_page_number }}&q={{ q }}">Sebelumnya</a>
+
+{% endif %}
+
+<span>
+
+Halaman {{ page_obj.number }}
+
+dari
+
+{{ page_obj.paginator.num_pages }}
+
+</span>
+
+{% if page_obj.has_next %}
+
+<a href="?page={{ page_obj.next_page_number }}&q={{ q }}">Berikutnya</a>
+
+<a href="?page={{ page_obj.paginator.num_pages }}&q={{ q }}">Akhir</a>
+
+{% endif %}
+
+</div>
+
+{% endif %}
 
 </div>
 

@@ -34,7 +34,25 @@ def dashboard(request):
 @role_required('administrator')
 def kategori_list(request):
     kategori = KategoriMenu.objects.all().order_by('nama')
-    return render(request, 'administrator/kategori_list.html', {'kategori': kategori})
+
+    q = request.GET.get('q')
+    if q:
+        kategori = kategori.filter(
+            Q(nama__icontains=q) |
+            Q(deskripsi__icontains=q)
+        )
+
+    paginator = Paginator(kategori, 10)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    return render(
+        request,
+        'administrator/kategori_list.html',
+        {
+            'page_obj': page_obj,
+            'q': q or ''
+        }
+    )
 
 
 @role_required('administrator')
@@ -65,8 +83,25 @@ def kategori_delete(request, pk):
 @role_required('administrator')
 def jenis_catering_list(request):
     jenis = JenisCatering.objects.all().order_by('nama')
-    return render(request, 'administrator/jenis_catering_list.html', {'jenis': jenis})
 
+    q = request.GET.get('q')
+    if q:
+        jenis = jenis.filter(
+            Q(nama__icontains=q) |
+            Q(deskripsi__icontains=q)
+        )
+
+    paginator = Paginator(jenis, 10)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    return render(
+        request,
+        'administrator/jenis_catering_list.html',
+        {
+            'page_obj': page_obj,
+            'q': q or ''
+        }
+    )
 
 @role_required('administrator')
 def jenis_catering_form(request, pk=None):

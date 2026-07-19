@@ -115,104 +115,118 @@ Aksi
 </thead>
 
 <tbody>
+
     {% for jenis in page_obj %}
-
-<tr>
-
+    
+    <tr>
+    
+    <td>{{ forloop.counter }}</td>
+    
     <td>
-        {{ forloop.counter }}
+    
+    <strong>{{ jenis.nama }}</strong>
+    
     </td>
-
+    
     <td>
-        <strong>{{ jenis.nama }}</strong>
+    
+    {{ jenis.deskripsi|default:"-" }}
+    
     </td>
-
+    
     <td>
-
-        {% if jenis.deskripsi %}
-
-            {{ jenis.deskripsi|truncatechars:70 }}
-
-        {% else %}
-
-            <span style="color:#999;">
-                Tidak ada deskripsi
-            </span>
-
-        {% endif %}
-
+    
+    {% if jenis.is_active %}
+    
+    <span class="badge selesai">
+    
+    Aktif
+    
+    </span>
+    
+    {% else %}
+    
+    <span class="badge dibatalkan">
+    
+    Nonaktif
+    
+    </span>
+    
+    {% endif %}
+    
     </td>
-
+    
     <td>
-
-        {% if jenis.is_active %}
-
-            <span class="badge selesai">
-                Aktif
-            </span>
-
-        {% else %}
-
-            <span class="badge dibatalkan">
-                Nonaktif
-            </span>
-
-        {% endif %}
-
+    
+    <a href="{% url 'administrator:jenis_catering_edit' jenis.pk %}"
+    class="btn btn-gold">
+    
+    Edit
+    
+    </a>
+    
+    <a href="{% url 'administrator:jenis_catering_hapus' jenis.pk %}"
+    class="btn btn-ghost">
+    
+    Hapus
+    
+    </a>
+    
     </td>
-
-    <td>
-
-        <a href="{% url 'administrator:jenis_catering_edit' jenis.pk %}"
-           class="btn btn-gold">
-            Edit
-        </a>
-
-        <a href="{% url 'administrator:jenis_catering_hapus' jenis.pk %}"
-           class="btn btn-ghost"
-           onclick="return confirm('Yakin ingin menghapus jenis catering ini?');">
-            Hapus
-        </a>
-
+    
+    </tr>
+    
+    {% empty %}
+    
+    <tr>
+    
+    <td colspan="5">
+    
+    Belum ada jenis catering.
+    
     </td>
-
-</tr>
-
-{% empty %}
-
-<tr>
-
-<td colspan="5" style="text-align:center;padding:45px;">
-
-<img src="{% static 'images/empty-category.svg' %}"
-     style="width:150px;">
-
-<br><br>
-
-<h3>Belum Ada Jenis Catering</h3>
-
-<p style="color:#888;">
-
-Silakan tambahkan jenis catering terlebih dahulu.
-
-</p>
-
-<a href="{% url 'administrator:jenis_catering_tambah' %}"
-   class="btn btn-primary">
-
-Tambah Jenis Catering
-
-</a>
-
-</td>
-
-</tr>
-
-{% endfor %}
-
-</tbody>
+    
+    </tr>
+    
+    {% endfor %}
+    
+    </tbody>
 
 </table>
+
+{% if page_obj.paginator.count %}
+
+<div class="pagination">
+
+{% if page_obj.has_previous %}
+
+<a href="?page=1&q={{ q }}">Awal</a>
+
+<a href="?page={{ page_obj.previous_page_number }}&q={{ q }}">Sebelumnya</a>
+
+{% endif %}
+
+<span>
+
+Halaman {{ page_obj.number }}
+
+dari
+
+{{ page_obj.paginator.num_pages }}
+
+</span>
+
+{% if page_obj.has_next %}
+
+<a href="?page={{ page_obj.next_page_number }}&q={{ q }}">Berikutnya</a>
+
+<a href="?page={{ page_obj.paginator.num_pages }}&q={{ q }}">Akhir</a>
+
+{% endif %}
+
+</div>
+
+{% endif %}
 
 </div>
 
