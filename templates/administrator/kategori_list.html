@@ -1,0 +1,462 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Kategori Menu | Meja Nusantara{% endblock %}
+
+{% block brand_sub %}
+Administrator
+{% endblock %}
+
+{% block topbar_role %}
+Administrator
+{% endblock %}
+
+{% block sidebar_nav %}
+
+<div class="nav-group">
+
+    <a href="{% url 'administrator:dashboard' %}" class="nav-link">
+        Dashboard
+    </a>
+
+    <a href="{% url 'administrator:kategori_list' %}" class="nav-link active">
+        Kategori
+    </a>
+
+    <a href="{% url 'administrator:jenis_catering_list' %}" class="nav-link">
+        Jenis Catering
+    </a>
+
+    <a href="{% url 'administrator:menu_list' %}" class="nav-link">
+        Menu Catering
+    </a>
+
+    <a href="{% url 'administrator:akun_list' %}" class="nav-link">
+        Kelola Akun
+    </a>
+
+    <a href="{% url 'administrator:transaksi_list' %}" class="nav-link">
+        Transaksi
+    </a>
+
+    <a href="{% url 'administrator:laporan' %}" class="nav-link">
+        Laporan
+    </a>
+
+</div>
+
+{% endblock %}
+
+{% block content %}
+
+<div class="panel">
+
+<div class="section-header">
+
+<div>
+
+<h2>
+
+Kategori Menu
+
+</h2>
+
+<p style="color:#7b6f61;">
+
+Kelola kategori menu catering.
+
+</p>
+
+</div>
+
+<a href="{% url 'administrator:kategori_tambah' %}"
+class="btn btn-primary">
+
++ Tambah Kategori
+
+</a>
+
+</div>
+
+<form method="GET" style="margin-top:25px;margin-bottom:25px;">
+
+<div style="display:flex;gap:15px;">
+
+<input
+type="text"
+name="q"
+value="{{ q }}"
+placeholder="Cari kategori..."
+class="form-control">
+
+<button class="btn btn-primary">
+
+Cari
+
+</button>
+
+</div>
+
+</form>
+
+<div class="table-responsive">
+
+<table class="table">
+
+<thead>
+
+<tr>
+
+<th width="80">
+
+No
+
+</th>
+
+<th>
+
+Nama Kategori
+
+</th>
+
+<th>
+
+Deskripsi
+
+</th>
+
+<th>
+
+Status
+
+</th>
+
+<th width="170">
+
+Aksi
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for kategori in page_obj %}
+
+<tr>
+
+    <td>
+
+        {{ forloop.counter }}
+
+    </td>
+
+    <td>
+
+        <strong>
+
+            {{ kategori.nama }}
+
+        </strong>
+
+    </td>
+
+    <td>
+
+        {% if kategori.deskripsi %}
+
+            {{ kategori.deskripsi|truncatechars:70 }}
+
+        {% else %}
+
+            <span style="color:#999;">
+
+                Tidak ada deskripsi
+
+            </span>
+
+        {% endif %}
+
+    </td>
+
+    <td>
+
+        {% if kategori.is_active %}
+
+            <span class="badge selesai">
+
+                Aktif
+
+            </span>
+
+        {% else %}
+
+            <span class="badge dibatalkan">
+
+                Nonaktif
+
+            </span>
+
+        {% endif %}
+
+    </td>
+
+    <td>
+
+        <a
+        href="{% url 'administrator:kategori_edit' kategori.pk %}"
+        class="btn btn-gold">
+
+            Edit
+
+        </a>
+
+        <a
+        href="{% url 'administrator:kategori_hapus' kategori.pk %}"
+        class="btn btn-ghost"
+        onclick="return confirm('Yakin ingin menghapus kategori ini?')">
+
+            Hapus
+
+        </a>
+
+    </td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+
+<td colspan="5" style="text-align:center;padding:45px;">
+
+<img
+src="{% static 'images/empty-category.svg' %}"
+style="width:140px;opacity:.9;">
+
+<br><br>
+
+<h3>
+
+Belum Ada Kategori
+
+</h3>
+
+<p style="color:#777;">
+
+Silakan tambahkan kategori menu terlebih dahulu.
+
+</p>
+
+<a
+href="{% url 'administrator:kategori_tambah' %}"
+class="btn btn-primary">
+
+Tambah Kategori
+
+</a>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+{% if page_obj.paginator.count %}
+
+<div
+style="
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-top:30px;
+flex-wrap:wrap;
+gap:15px;
+">
+
+<div style="color:#7b6f61;">
+
+Menampilkan
+
+<strong>{{ page_obj.start_index }}</strong>
+
+-
+
+<strong>{{ page_obj.end_index }}</strong>
+
+dari
+
+<strong>{{ page_obj.paginator.count }}</strong>
+
+kategori.
+
+</div>
+
+<div style="display:flex;gap:8px;">
+
+{% if page_obj.has_previous %}
+
+<a
+href="?page=1&q={{ q }}"
+class="btn btn-ghost">
+
+« Awal
+
+</a>
+
+<a
+href="?page={{ page_obj.previous_page_number }}&q={{ q }}"
+class="btn btn-ghost">
+
+‹ Sebelumnya
+
+</a>
+
+{% endif %}
+
+<span class="btn btn-primary">
+
+{{ page_obj.number }}
+
+/
+
+{{ page_obj.paginator.num_pages }}
+
+</span>
+
+{% if page_obj.has_next %}
+
+<a
+href="?page={{ page_obj.next_page_number }}&q={{ q }}"
+class="btn btn-ghost">
+
+Berikutnya ›
+
+</a>
+
+<a
+href="?page={{ page_obj.paginator.num_pages }}&q={{ q }}"
+class="btn btn-ghost">
+
+Akhir »
+
+</a>
+
+{% endif %}
+
+</div>
+
+</div>
+
+{% endif %}
+
+</div>
+
+<style>
+
+.table-responsive{
+overflow-x:auto;
+}
+
+.table{
+width:100%;
+border-collapse:collapse;
+}
+
+.table th{
+background:#f7f2ea;
+padding:15px;
+color:#5c4033;
+font-weight:700;
+border-bottom:2px solid #e8ddcf;
+}
+
+.table td{
+padding:15px;
+border-bottom:1px solid #eee;
+vertical-align:middle;
+}
+
+.table tr:hover{
+background:#fcfaf7;
+}
+
+.form-control{
+width:100%;
+padding:12px;
+border:1px solid #d8c9b5;
+border-radius:10px;
+font-size:15px;
+}
+
+.form-control:focus{
+outline:none;
+border-color:#8B5E3C;
+}
+
+.badge{
+display:inline-block;
+padding:6px 14px;
+border-radius:999px;
+font-size:13px;
+font-weight:600;
+}
+
+.badge.selesai{
+background:#dff5e6;
+color:#207245;
+}
+
+.badge.dibatalkan{
+background:#ffe1df;
+color:#b12828;
+}
+
+.btn{
+display:inline-block;
+padding:10px 18px;
+border-radius:10px;
+text-decoration:none;
+font-weight:600;
+transition:.3s;
+}
+
+.btn-primary{
+background:#8B5E3C;
+color:white;
+}
+
+.btn-primary:hover{
+background:#6f472d;
+}
+
+.btn-gold{
+background:#c49a47;
+color:white;
+}
+
+.btn-gold:hover{
+background:#a67f34;
+}
+
+.btn-ghost{
+background:#f5f3ef;
+color:#5c4033;
+margin-left:5px;
+}
+
+.btn-ghost:hover{
+background:#ebe5db;
+}
+
+</style>
+
+{% endblock %}

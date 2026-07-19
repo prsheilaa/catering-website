@@ -1,0 +1,456 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Data Menu | Meja Nusantara{% endblock %}
+
+{% block brand_sub %}
+Administrator
+{% endblock %}
+
+{% block topbar_role %}
+Administrator
+{% endblock %}
+
+{% block sidebar_nav %}
+
+<div class="nav-group">
+
+    <a href="{% url 'administrator:dashboard' %}" class="nav-link">
+        Dashboard
+    </a>
+
+    <a href="{% url 'administrator:kategori_list' %}" class="nav-link">
+        Kategori
+    </a>
+
+    <a href="{% url 'administrator:jenis_catering_list' %}" class="nav-link">
+        Jenis Catering
+    </a>
+
+    <a href="{% url 'administrator:menu_list' %}" class="nav-link active">
+        Menu Catering
+    </a>
+
+    <a href="{% url 'administrator:akun_list' %}" class="nav-link">
+        Kelola Akun
+    </a>
+
+    <a href="{% url 'administrator:transaksi_list' %}" class="nav-link">
+        Transaksi
+    </a>
+
+    <a href="{% url 'administrator:laporan' %}" class="nav-link">
+        Laporan
+    </a>
+
+</div>
+
+{% endblock %}
+
+{% block content %}
+
+<div class="panel">
+
+    <div class="section-header">
+
+        <div>
+
+            <h2 style="margin-bottom:5px;">
+                Data Menu Catering
+            </h2>
+
+            <p style="color:#7b6f61;">
+                Kelola seluruh menu catering yang tersedia.
+            </p>
+
+        </div>
+
+        <a href="{% url 'administrator:menu_tambah' %}" class="btn btn-primary">
+            + Tambah Menu
+        </a>
+
+    </div>
+
+    <form method="GET" style="margin-top:25px;margin-bottom:25px;">
+
+        <div style="display:flex;gap:15px;">
+
+            <input
+                type="text"
+                name="q"
+                value="{{ q }}"
+                placeholder="Cari nama menu atau kategori..."
+                class="form-control">
+
+            <button class="btn btn-primary">
+                Cari
+            </button>
+
+        </div>
+
+    </form>
+
+    <div class="table-responsive">
+
+        <table class="table">
+
+            <thead>
+
+            <tr>
+
+                <th>Foto</th>
+
+                <th>Nama Paket</th>
+
+                <th>Kategori</th>
+
+                <th>Jenis</th>
+
+                <th>Harga</th>
+
+                <th>Status</th>
+
+                <th width="170">
+                    Aksi
+                </th>
+
+            </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% for menu in page_obj %}
+
+            <tr>
+
+                <td>
+            
+                    {% if menu.foto %}
+            
+                        <img src="{{ menu.foto.url }}"
+                             alt="{{ menu.nama_paket }}"
+                             style="
+                             width:80px;
+                             height:60px;
+                             object-fit:cover;
+                             border-radius:10px;
+                             border:1px solid #ddd;">
+            
+                    {% else %}
+            
+                        <img src="{% static 'images/no-image.png' %}"
+                             alt="No Image"
+                             style="
+                             width:80px;
+                             height:60px;
+                             object-fit:cover;
+                             border-radius:10px;
+                             border:1px solid #ddd;">
+            
+                    {% endif %}
+            
+                </td>
+            
+                <td>
+            
+                    <strong>
+                        {{ menu.nama_paket }}
+                    </strong>
+            
+                    {% if menu.deskripsi %}
+                    <br>
+                    <small style="color:#777;">
+                        {{ menu.deskripsi|truncatechars:50 }}
+                    </small>
+                    {% endif %}
+            
+                </td>
+            
+                <td>
+            
+                    {{ menu.kategori.nama }}
+            
+                </td>
+            
+                <td>
+            
+                    {{ menu.jenis_catering.nama }}
+            
+                </td>
+            
+                <td>
+            
+                    Rp {{ menu.harga_per_porsi }}
+            
+                </td>
+            
+                <td>
+            
+                    {% if menu.status_stok == 'tersedia' %}
+            
+                        <span class="badge selesai">
+                            Tersedia
+                        </span>
+            
+                    {% else %}
+            
+                        <span class="badge dibatalkan">
+                            Kosong
+                        </span>
+            
+                    {% endif %}
+            
+                </td>
+            
+                <td>
+            
+                    <a href="{% url 'administrator:menu_edit' menu.pk %}"
+                       class="btn btn-gold">
+            
+                        Edit
+            
+                    </a>
+            
+                    <a href="{% url 'administrator:menu_hapus' menu.pk %}"
+                       class="btn btn-ghost"
+                       onclick="return confirm('Yakin ingin menghapus menu ini?')">
+            
+                        Hapus
+            
+                    </a>
+            
+                </td>
+            
+            </tr>
+            
+            {% empty %}
+            
+            <tr>
+            
+                <td colspan="7" style="text-align:center;padding:40px;">
+            
+                    <img src="{% static 'images/empty-menu.svg' %}"
+                         width="140">
+            
+                    <br><br>
+            
+                    <h3>Belum Ada Menu</h3>
+            
+                    <p style="color:#777;">
+            
+                        Silakan tambahkan menu catering terlebih dahulu.
+            
+                    </p>
+            
+                    <a href="{% url 'administrator:menu_tambah' %}"
+                       class="btn btn-primary">
+            
+                        Tambah Menu
+            
+                    </a>
+            
+                </td>
+            
+            </tr>
+            
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% if page_obj.paginator.count > 0 %}
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-top:25px;flex-wrap:wrap;gap:15px;">
+
+    <div style="color:#7b6f61;">
+
+        Menampilkan
+
+        <strong>
+
+            {{ page_obj.start_index }}
+
+        </strong>
+
+        -
+
+        <strong>
+
+            {{ page_obj.end_index }}
+
+        </strong>
+
+        dari
+
+        <strong>
+
+            {{ page_obj.paginator.count }}
+
+        </strong>
+
+        menu.
+
+    </div>
+
+    <div style="display:flex;gap:8px;align-items:center;">
+
+        {% if page_obj.has_previous %}
+
+            <a href="?page=1&q={{ q }}"
+               class="btn btn-ghost">
+
+                « Awal
+
+            </a>
+
+            <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}"
+               class="btn btn-ghost">
+
+                ‹ Sebelumnya
+
+            </a>
+
+        {% endif %}
+
+        <span class="btn btn-primary">
+
+            {{ page_obj.number }}
+
+            /
+
+            {{ page_obj.paginator.num_pages }}
+
+        </span>
+
+        {% if page_obj.has_next %}
+
+            <a href="?page={{ page_obj.next_page_number }}&q={{ q }}"
+               class="btn btn-ghost">
+
+                Berikutnya ›
+
+            </a>
+
+            <a href="?page={{ page_obj.paginator.num_pages }}&q={{ q }}"
+               class="btn btn-ghost">
+
+                Akhir »
+
+            </a>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endif %}
+
+</div>
+
+<style>
+
+.table-responsive{
+overflow-x:auto;
+}
+
+.table{
+width:100%;
+border-collapse:collapse;
+}
+
+.table th{
+background:#f7f2ea;
+color:#5c4033;
+font-weight:700;
+padding:15px;
+text-align:left;
+border-bottom:2px solid #e8ddcf;
+}
+
+.table td{
+padding:15px;
+border-bottom:1px solid #eee;
+vertical-align:middle;
+}
+
+.table tr:hover{
+background:#fcfaf7;
+}
+
+.form-control{
+width:100%;
+padding:12px 15px;
+border:1px solid #d8c9b5;
+border-radius:10px;
+outline:none;
+font-size:15px;
+background:white;
+}
+
+.form-control:focus{
+border-color:#8b5e3c;
+}
+
+.badge{
+display:inline-block;
+padding:6px 14px;
+border-radius:999px;
+font-size:13px;
+font-weight:600;
+}
+
+.badge.selesai{
+background:#dff5e6;
+color:#207245;
+}
+
+.badge.dibatalkan{
+background:#ffe1df;
+color:#b12828;
+}
+
+.btn{
+display:inline-block;
+text-decoration:none;
+padding:10px 18px;
+border-radius:10px;
+font-weight:600;
+transition:.25s;
+}
+
+.btn-primary{
+background:#8b5e3c;
+color:white;
+}
+
+.btn-primary:hover{
+background:#704728;
+}
+
+.btn-gold{
+background:#c49a47;
+color:white;
+}
+
+.btn-gold:hover{
+background:#a57d34;
+}
+
+.btn-ghost{
+background:#f5f3ef;
+color:#5c4033;
+margin-left:5px;
+}
+
+.btn-ghost:hover{
+background:#ebe5db;
+}
+
+</style>
+
+{% endblock %}
