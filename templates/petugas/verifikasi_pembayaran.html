@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}Verifikasi Pembayaran — Meja Nusantara{% endblock %}
+{% block brand_sub %}Petugas{% endblock %}
+{% block topbar_role %}Operator{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-group">
+    <div class="nav-label">Ringkasan</div>
+    <a class="nav-link" href="{% url 'petugas:dashboard' %}">
+        Dashboard
+    </a>
+</div>
+
+<div class="nav-group">
+    <div class="nav-label">Registrasi</div>
+    <a class="nav-link"
+       href="{% url 'petugas:pelanggan_pending' %}">
+        Approval Pelanggan
+    </a>
+</div>
+
+<div class="nav-group">
+    <div class="nav-label">Pembayaran</div>
+
+    <a class="nav-link active"
+       href="{% url 'petugas:pembayaran_pending' %}">
+        Verifikasi Pembayaran
+    </a>
+
+    <a class="nav-link"
+       href="{% url 'petugas:riwayat_pembayaran' %}">
+        Riwayat Pembayaran
+    </a>
+</div>
+
+<div class="nav-group">
+    <div class="nav-label">Pesanan</div>
+
+    <a class="nav-link"
+       href="{% url 'petugas:pesanan_diproses' %}">
+        Pesanan Diproses
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-head">
+
+    <div>
+
+        <h1>Verifikasi Pembayaran</h1>
+
+        <p>
+            Pastikan pembayaran pelanggan telah sesuai sebelum pesanan diproses.
+        </p>
+
+    </div>
+
+</div>
+
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+
+    <!-- INFORMASI PESANAN -->
+
+    <div class="panel">
+
+        <div class="panel-head">
+
+            <h3>Informasi Pesanan</h3>
+
+            <span class="badge menunggu">
+
+                {{ pembayaran.get_status_verifikasi_display }}
+
+            </span>
+
+        </div>
+
+        <div class="field">
+            <label>Kode Pesanan</label>
+            <input type="text"
+                   value="{{ pesanan.kode_pesanan }}"
+                   readonly>
+        </div>
+
+        <div class="field">
+            <label>Nama Pelanggan</label>
+            <input type="text"
+                   value="{{ pesanan.pelanggan.username }}"
+                   readonly>
+        </div>
+
+        <div class="field">
+            <label>Metode Pembayaran</label>
+            <input type="text"
+                   value="{{ pembayaran.get_metode_display }}"
+                   readonly>
+        </div>
+
+        <div class="field">
+            <label>Jumlah Pembayaran</label>
+            <input type="text"
+                   value="Rp {{ pembayaran.jumlah_bayar }}"
+                   readonly>
+        </div>
+
+    </div>
+
+
+    <!-- BUKTI PEMBAYARAN -->
+
+    <div class="panel">
+
+        <div class="panel-head">
+
+            <h3>Bukti Pembayaran</h3>
+
+        </div>
+
+        {% if pembayaran.bukti_bayar %}
+
+            <img src="{{ pembayaran.bukti_bayar.url }}"
+                 style="
+                    width:100%;
+                    border-radius:12px;
+                    border:1px solid var(--border);
+                 ">
+
+        {% else %}
+
+            <div style="
+                text-align:center;
+                padding:50px;
+                color:var(--text-muted);
+            ">
+
+                Bukti pembayaran belum tersedia.
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<div class="panel">
+
+    <div class="panel-head">
+
+        <h3>Form Verifikasi</h3>
+
+    </div>
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        <div class="field">
+
+            <label>Status Verifikasi</label>
+
+            {{ form.status_verifikasi }}
+
+        </div>
+
+        <div class="field">
+
+            <label>Catatan Verifikasi</label>
+
+            {{ form.catatan_verifikasi }}
+
+        </div>
+
+        <div style="display:flex;gap:12px;">
+
+            <button type="submit"
+                    class="btn btn-primary">
+
+                Simpan Verifikasi
+
+            </button>
+
+            <a href="{% url 'petugas:pembayaran_pending' %}"
+               class="btn btn-ghost">
+
+                Kembali
+
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}
