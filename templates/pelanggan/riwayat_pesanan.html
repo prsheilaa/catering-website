@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}Riwayat Pesanan | Meja Nusantara{% endblock %}
+{% block brand_sub %}Pelanggan{% endblock %}
+{% block topbar_role %}Pelanggan{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-group">
+  <a href="{% url 'pelanggan:dashboard' %}" class="nav-link">Dashboard</a>
+  <a href="{% url 'pelanggan:menu_list' %}" class="nav-link">Daftar Menu</a>
+  <a href="{% url 'pelanggan:riwayat_pesanan' %}" class="nav-link active">Riwayat Pesanan</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="panel">
+  <h2>Riwayat Pesanan Saya</h2>
+
+  <form method="GET" style="margin:16px 0;">
+    <select name="status" class="form-control" style="max-width:220px;" onchange="this.form.submit()">
+      <option value="">Semua Status</option>
+      {% for value, label in status_choices %}
+        <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </form>
+
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Kode Pesanan</th>
+          <th>Menu</th>
+          <th>Jumlah Porsi</th>
+          <th>Total Harga</th>
+          <th>Status</th>
+          <th>Tanggal</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in page_obj %}
+        <tr>
+          <td>{{ p.kode_pesanan }}</td>
+          <td>{{ p.menu.nama_paket }}</td>
+          <td>{{ p.jumlah_porsi }}</td>
+          <td>Rp {{ p.total_harga|floatformat:0 }}</td>
+          <td>
+            <span class="badge {% if p.status == 'selesai' %}selesai{% elif p.status == 'dibatalkan' %}dibatalkan{% else %}menunggu{% endif %}">
+              {{ p.get_status_display }}
+            </span>
+          </td>
+          <td>{{ p.created_at|date:"d M Y" }}</td>
+          <td><a href="{% url 'pelanggan:detail_pesanan' p.id %}" class="btn btn-ghost">Detail</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7">Belum ada pesanan.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if page_obj.paginator.count %}
+  <div class="pagination" style="margin-top:16px;">
+    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}">‹ Sebelumnya</a>{% endif %}
+    <span>Halaman {{ page_obj.number }} dari {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}">Berikutnya ›</a>{% endif %}
+  </div>
+  {% endif %}
+</div>
+
+<style>
+.badge.menunggu{background:#fff3cd;color:#8a6d3b;}
+</style>
+{% endblock %}

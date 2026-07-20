@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Buat Pesanan — Meja Nusantara{% endblock %}
+{% block brand_sub %}Pelanggan{% endblock %}
+{% block topbar_title %}Buat Pesanan{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-group">
+  <div class="nav-label">Ringkasan</div>
+  <a class="nav-link" href="{% url 'pelanggan:dashboard' %}">Dashboard</a>
+</div>
+<div class="nav-group">
+  <div class="nav-label">Katering</div>
+  <a class="nav-link active" href="{% url 'pelanggan:buat_pesanan' %}">Buat Pesanan</a>
+  <a class="nav-link" href="{% url 'pelanggan:riwayat_pesanan' %}">Riwayat Pesanan</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Buat Pesanan</h1>
+    <p>Centang satu atau lebih menu, lalu tentukan paket porsi masing-masing.</p>
+  </div>
+</div>
+
+<form method="POST" class="panel" style="max-width:720px;">
+  {% csrf_token %}
+
+  <div class="field">
+    <label>Filter Kategori Menu</label>
+    <select id="id_kategori">
+      <option value="">Semua Kategori</option>
+      {% for k in kategori_list %}<option value="{{ k.id }}">{{ k.nama }}</option>{% endfor %}
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Pilih Menu</label>
+    <div id="daftar_menu" style="border:1px solid var(--border); border-radius:8px; overflow:hidden;">
+      {% for m in menu_tersedia %}
+      <div class="menu-row" data-kategori="{{ m.kategori_id }}" data-harga="{{ m.harga_per_porsi }}"
+           style="display:flex; align-items:center; gap:12px; padding:12px 14px; border-bottom:1px solid var(--border);">
+        <input type="checkbox" name="item_menu" value="{{ m.id }}" class="chk-menu" id="chk_{{ m.id }}">
+        <label for="chk_{{ m.id }}" style="flex:1; margin:0; font-weight:600; cursor:pointer;">
+          {{ m.nama_paket }}
+          <div style="font-weight:400; font-size:12.5px; color:var(--text-muted);">
+            {{ m.kategori.nama }} · Rp {{ m.harga_per_porsi|floatformat:0 }}/porsi
+          </div>
+        </label>
+        <select name="paket_{{ m.id }}" class="sel-paket" disabled style="width:190px;">
+          <option value="">— Paket —</option>
+          {% for nilai, label in paket_pilihan %}
+            <option value="{{ nilai }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+        <span class="subtotal mono" style="width:110px; text-align:right; color:var(--text-muted);">Rp 0</span>
+      </div>
+      {% empty %}
+      <p style="padding:14px;">Belum ada menu tersedia.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Jenis Catering</label>
+    <select name="jenis_catering" required>
+      {% for j in jenis_list %}<option value="{{ j.id }}">{{ j.nama }}</option>{% endfor %}
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Nama Pemesan</label>
+    <input type="text" name="nama_pemesan" value="{{ default_nama }}" required>
+  </div>
+
+  <div class="field">
+    <label>Nomor Telepon</label>
+    <input type="text" name="no_telepon" value="{{ default_telepon }}" required>
+  </div>
+
+  <div class="field">
+    <label>Alamat Pengiriman</label>
+    <textarea name="alamat" rows="2" required>{{ default_alamat }}</textarea>
+  </div>
+
+  <div class="field">
+    <label>Waktu Acara</label>
+    <input type="datetime-local" name="waktu_acara" required>
+  </div>
+
+  <div class="field">
+    <label>Catatan Tambahan</label>
+    <textarea name="catatan_tambahan" rows="2"></textarea>
+  </div>
+
+  <div class="panel" style="background:var(--paper-3); box-shadow:none; margin-bottom:20px;">
+    <div class="stat-label">Total Harga</div>
+    <div class="stat-value accent mono" id="total_harga">Rp 0</div>
+  </div>
+
+  <button type="submit" class="btn btn-primary btn-block">Buat Pesanan</button>
+</form>
+
+<script>
+  const kategoriSelect = document.getElementById('id_kategori');
+  const rows = Array.from(document.querySelectorAll('.menu-row'));
+
+  function filterKategori() {
+    const kategoriId = kategoriSelect.value;
+    rows.forEach(row => {
+      row.style.display = (!kategoriId || row.dataset.kategori === kategoriId) ? 'flex' : 'none';
+    });
+  }
+
+  function hitungTotal() {
+    let total = 0;
+    rows.forEach(row => {
+      const chk = row.querySelector('.chk-menu');
+      const sel = row.querySelector('.sel-paket');
+      const subtotalEl = row.querySelector('.subtotal');
+      sel.disabled = !chk.checked;
+      if (!chk.checked) sel.value = '';
+      const harga = parseFloat(row.dataset.harga) || 0;
+      const jumlah = parseInt(sel.value) || 0;
+      const subtotal = chk.checked ? harga * jumlah : 0;
+      subtotalEl.textContent = 'Rp ' + subtotal.toLocaleString('id-ID');
+      total += subtotal;
+    });
+    document.getElementById('total_harga').textContent = 'Rp ' + total.toLocaleString('id-ID');
+  }
+
+  rows.forEach(row => {
+    row.querySelector('.chk-menu').addEventListener('change', hitungTotal);
+    row.querySelector('.sel-paket').addEventListener('change', hitungTotal);
+  });
+
+  kategoriSelect.addEventListener('change', filterKategori);
+  hitungTotal();
+</script>
+{% endblock %}

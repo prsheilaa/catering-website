@@ -21,6 +21,12 @@
   Selamat datang kembali di Meja Nusantara. Yuk pesan katering untuk acara Anda berikutnya.
 </p>
 
+<div style="margin-bottom:28px;">
+  <a href="{% url 'pelanggan:buat_pesanan' %}" class="btn btn-primary">
+    + Buat Pesanan Baru
+  </a>
+</div>
+
 <div class="stat-grid">
   <div class="ticket stat-card">
     <div class="ticket-perf"></div>
@@ -69,57 +75,35 @@
   </div>
 </div>
 
-<div style="display:grid; grid-template-columns: 1.3fr 1fr; gap: 20px;">
-
-  <div class="panel">
-    <div class="panel-head">
-      <h3 style="margin:0;">Menu tersedia</h3>
-      <a href="{% url 'pelanggan:menu_list' %}" class="btn btn-ghost">Lihat semua</a>
-    </div>
-    {% if menu_tersedia %}
-    <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
-      {% for menu in menu_tersedia %}
-      <a href="{% url 'pelanggan:buat_pesanan' menu.id %}" style="text-decoration:none; display:block; border:1px solid var(--border); border-radius: var(--radius); padding: 14px; background: var(--paper);">
-        <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color: var(--gold-dark); margin-bottom:4px;">{{ menu.kategori.nama }}</div>
-        <div style="font-family:'Fraunces', serif; font-weight:600; color: var(--ink); margin-bottom:6px;">{{ menu.nama_paket }}</div>
-        <div class="mono" style="font-size:13px; color: var(--pandan);">Rp {{ menu.harga_per_porsi|floatformat:0 }} / porsi</div>
-      </a>
-      {% endfor %}
-    </div>
-    {% else %}
-    <p style="color: var(--text-muted);">Belum ada menu tersedia saat ini.</p>
-    {% endif %}
+<div class="panel">
+  <div class="panel-head">
+    <h3 style="margin:0;">Pesanan terbaru</h3>
+    <a href="{% url 'pelanggan:riwayat_pesanan' %}" class="btn btn-ghost">Semua</a>
   </div>
-
-  <div class="panel">
-    <div class="panel-head">
-      <h3 style="margin:0;">Pesanan terbaru</h3>
-      <a href="{% url 'pelanggan:riwayat_pesanan' %}" class="btn btn-ghost">Semua</a>
-    </div>
-    {% if pesanan_terbaru %}
-    <div style="display:flex; flex-direction:column; gap: 12px;">
-      {% for pesanan in pesanan_terbaru %}
-      <a href="{% url 'pelanggan:detail_pesanan' pesanan.id %}" style="text-decoration:none; display:flex; justify-content:space-between; align-items:center; padding: 10px 0; border-bottom: 1px solid var(--border);">
-        <div>
-          <div class="mono" style="font-size:13px; color: var(--ink);">{{ pesanan.kode_pesanan }}</div>
-          <div style="font-size:12px; color: var(--text-muted);">{{ pesanan.menu.nama_paket }}</div>
-        </div>
-        {% if pesanan.status == 'menunggu_pembayaran' %}
-          <span class="badge menunggu">Menunggu</span>
-        {% elif pesanan.status == 'diproses' %}
-          <span class="badge diproses">Diproses</span>
-        {% elif pesanan.status == 'selesai' %}
-          <span class="badge selesai">Selesai</span>
-        {% else %}
-          <span class="badge batal">Batal</span>
-        {% endif %}
-      </a>
-      {% endfor %}
-    </div>
-    {% else %}
-    <p style="color: var(--text-muted);">Anda belum pernah memesan.</p>
-    {% endif %}
+  {% if pesanan_terbaru %}
+  <div style="display:flex; flex-direction:column; gap: 12px;">
+    {% for pesanan in pesanan_terbaru %}
+    <a href="{% url 'pelanggan:detail_pesanan' pesanan.id %}" style="text-decoration:none; display:flex; justify-content:space-between; align-items:center; padding: 10px 0; border-bottom: 1px solid var(--border);">
+      <div>
+        <div class="mono" style="font-size:13px; color: var(--ink);">{{ pesanan.kode_pesanan }}</div>
+        <div style="font-size:12px; color: var(--text-muted);">{{ pesanan.item_list.count }} menu dipesan</div>
+      </div>
+      {% if pesanan.status == 'menunggu_pembayaran' %}
+        <span class="badge menunggu">Menunggu</span>
+      {% elif pesanan.status == 'diproses' %}
+        <span class="badge diproses">Diproses</span>
+      {% elif pesanan.status == 'selesai' %}
+        <span class="badge selesai">Selesai</span>
+      {% else %}
+        <span class="badge batal">Batal</span>
+      {% endif %}
+    </a>
+    {% endfor %}
   </div>
+  {% else %}
+  <p style="color: var(--text-muted);">Anda belum pernah memesan.</p>
+  {% endif %}
+</div>
 
 </div>
 {% endblock %}
