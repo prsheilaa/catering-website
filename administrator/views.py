@@ -34,7 +34,25 @@ def dashboard(request):
 @role_required('administrator')
 def kategori_list(request):
     kategori = KategoriMenu.objects.all().order_by('nama')
-    return render(request, 'administrator/kategori_list.html', {'kategori': kategori})
+
+    q = request.GET.get('q')
+    if q:
+        kategori = kategori.filter(
+            Q(nama__icontains=q) |
+            Q(deskripsi__icontains=q)
+        )
+
+    paginator = Paginator(kategori, 10)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    return render(
+        request,
+        'administrator/kategori_list.html',
+        {
+            'page_obj': page_obj,
+            'q': q or ''
+        }
+    )
 
 
 @role_required('administrator')
@@ -65,8 +83,25 @@ def kategori_delete(request, pk):
 @role_required('administrator')
 def jenis_catering_list(request):
     jenis = JenisCatering.objects.all().order_by('nama')
-    return render(request, 'administrator/jenis_catering_list.html', {'jenis': jenis})
 
+    q = request.GET.get('q')
+    if q:
+        jenis = jenis.filter(
+            Q(nama__icontains=q) |
+            Q(deskripsi__icontains=q)
+        )
+
+    paginator = Paginator(jenis, 10)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    return render(
+        request,
+        'administrator/jenis_catering_list.html',
+        {
+            'page_obj': page_obj,
+            'q': q or ''
+        }
+    )
 
 @role_required('administrator')
 def jenis_catering_form(request, pk=None):
@@ -95,13 +130,40 @@ def jenis_catering_delete(request, pk):
 # ==========================================================
 @role_required('administrator')
 def menu_list(request):
-    menu = Menu.objects.select_related('kategori', 'jenis_catering').order_by('-created_at')
+
+    menu = Menu.objects.select_related(
+        'kategori',
+        'jenis_catering'
+    ).order_by('-created_at')
+
     q = request.GET.get('q')
+    kategori = request.GET.get('kategori')
+    jenis = request.GET.get('jenis')
+
     if q:
-        menu = menu.filter(Q(nama_paket__icontains=q) | Q(kategori__nama__icontains=q))
+        menu = menu.filter(
+            Q(nama_paket__icontains=q) |
+            Q(kategori__nama__icontains=q) |
+            Q(jenis_catering__nama__icontains=q)
+        )
+
+    if kategori:
+        menu = menu.filter(kategori_id=kategori)
+
+    if jenis:
+        menu = menu.filter(jenis_catering_id=jenis)
+
     paginator = Paginator(menu, 10)
     page_obj = paginator.get_page(request.GET.get('page'))
-    return render(request, 'administrator/menu_list.html', {'page_obj': page_obj, 'q': q or ''})
+
+    return render(request, 'administrator/menu_list.html', {
+        'page_obj': page_obj,
+        'q': q,
+        'kategori': kategori,
+        'jenis': jenis,
+        'kategori_list': KategoriMenu.objects.all(),
+        'jenis_list': JenisCatering.objects.all(),
+    })
 
 
 @role_required('administrator')
