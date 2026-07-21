@@ -15,6 +15,10 @@ urlpatterns = [
     path('pembayaran-pending/', views.daftar_pembayaran_pending, name='pembayaran_pending'),
     path('pembayaran/<int:pk>/verifikasi/', views.verifikasi_pembayaran, name='verifikasi_pembayaran'),
 
+# ===== TAMBAHAN =====
+    path('riwayat-pembayaran/', views.riwayat_pembayaran, name='riwayat_pembayaran'),
+    path('detail-pembayaran/<int:pk>/', views.detail_pembayaran, name='detail_pembayaran'),
+
     # Pesanan diproses
     path('pesanan-diproses/', views.daftar_pesanan_diproses, name='pesanan_diproses'),
     path('pesanan/<int:pk>/selesai/', views.selesaikan_pesanan, name='selesaikan_pesanan'),

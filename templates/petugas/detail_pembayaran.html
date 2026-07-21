@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}Detail Pembayaran — Meja Nusantara{% endblock %}
+{% block brand_sub %}Petugas{% endblock %}
+{% block topbar_role %}Operator{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-group">
+    <div class="nav-label">Ringkasan</div>
+    <a class="nav-link" href="{% url 'petugas:dashboard' %}">
+        Dashboard
+    </a>
+</div>
+
+<div class="nav-group">
+    <div class="nav-label">Registrasi</div>
+    <a class="nav-link"
+       href="{% url 'petugas:pelanggan_pending' %}">
+        Approval Pelanggan
+    </a>
+</div>
+
+<div class="nav-group">
+    <div class="nav-label">Pembayaran</div>
+
+    <a class="nav-link"
+       href="{% url 'petugas:pembayaran_pending' %}">
+        Verifikasi Pembayaran
+    </a>
+
+    <a class="nav-link active"
+       href="{% url 'petugas:riwayat_pembayaran' %}">
+        Riwayat Pembayaran
+    </a>
+</div>
+
+<div class="nav-group">
+    <div class="nav-label">Pesanan</div>
+
+    <a class="nav-link"
+       href="{% url 'petugas:pesanan_diproses' %}">
+        Pesanan Diproses
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-head">
+
+    <div>
+
+        <h1>Detail Pembayaran</h1>
+
+        <p>
+            Informasi lengkap pembayaran pelanggan.
+        </p>
+
+    </div>
+
+    {% if pembayaran.status_verifikasi == 'valid' %}
+
+        <span class="badge selesai">
+
+            Valid
+
+        </span>
+
+    {% elif pembayaran.status_verifikasi == 'tidak_valid' %}
+
+        <span class="badge batal">
+
+            Tidak Valid
+
+        </span>
+
+    {% else %}
+
+        <span class="badge menunggu">
+
+            Menunggu
+
+        </span>
+
+    {% endif %}
+
+</div>
+
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+
+    <div class="panel">
+
+        <div class="panel-head">
+
+            <h3>Informasi Pembayaran</h3>
+
+        </div>
+
+        <div class="field">
+            <label>Kode Pesanan</label>
+            <input type="text"
+                   readonly
+                   value="{{ pembayaran.pesanan.kode_pesanan }}">
+        </div>
+
+        <div class="field">
+            <label>Nama Pelanggan</label>
+            <input type="text"
+                   readonly
+                   value="{{ pembayaran.pesanan.pelanggan.username }}">
+        </div>
+
+        <div class="field">
+            <label>Metode Pembayaran</label>
+            <input type="text"
+                   readonly
+                   value="{{ pembayaran.get_metode_display }}">
+        </div>
+
+        <div class="field">
+            <label>Jumlah Pembayaran</label>
+            <input type="text"
+                   readonly
+                   value="Rp {{ pembayaran.jumlah_bayar }}">
+        </div>
+
+        <div class="field">
+            <label>Status Verifikasi</label>
+            <input type="text"
+                   readonly
+                   value="{{ pembayaran.get_status_verifikasi_display }}">
+        </div>
+
+        <div class="field">
+            <label>Catatan Verifikasi</label>
+
+            <textarea rows="4" readonly>
+
+{{ pembayaran.catatan_verifikasi|default:"Belum ada catatan." }}
+
+            </textarea>
+
+        </div>
+
+    </div>
+
+
+    <div class="panel">
+
+        <div class="panel-head">
+
+            <h3>Bukti Pembayaran</h3>
+
+        </div>
+
+        {% if pembayaran.bukti_bayar %}
+
+            <img src="{{ pembayaran.bukti_bayar.url }}"
+                 style="
+                    width:100%;
+                    border-radius:14px;
+                    border:1px solid var(--border);
+                 ">
+
+        {% else %}
+
+            <div style="
+                text-align:center;
+                padding:80px;
+                color:var(--text-muted);
+            ">
+
+                Bukti pembayaran belum tersedia.
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<div class="panel">
+
+    <div style="display:flex;justify-content:flex-end;gap:12px;">
+
+        <a href="{% url 'petugas:riwayat_pembayaran' %}"
+           class="btn btn-ghost">
+
+            Kembali
+
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}
