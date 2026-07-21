@@ -84,6 +84,54 @@ def dashboard(request):
     }
     return render(request, 'pelanggan/dashboard.html', context)
 
+# ==========================================================
+# KATALOG MENU (daftar & detail)
+# ==========================================================
+@role_required('pelanggan')
+def menu_list(request):
+    menu_qs = Menu.objects.filter(
+        status_stok=Menu.StatusStok.TERSEDIA
+    ).select_related('kategori', 'jenis_catering').order_by('kategori__nama', 'nama_paket')
+
+    kategori_id = request.GET.get('kategori', '')
+    jenis_id = request.GET.get('jenis', '')
+    q = request.GET.get('q', '').strip()
+
+    if kategori_id:
+        menu_qs = menu_qs.filter(kategori_id=kategori_id)
+    if jenis_id:
+        menu_qs = menu_qs.filter(jenis_catering_id=jenis_id)
+    if q:
+        menu_qs = menu_qs.filter(nama_paket__icontains=q)
+
+    paginator = Paginator(menu_qs, 9)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    return render(request, 'pelanggan/menu_list.html', {
+        'page_obj': page_obj,
+        'kategori_list': KategoriMenu.objects.filter(is_active=True),
+        'jenis_list': JenisCatering.objects.filter(is_active=True),
+        'kategori_id': kategori_id,
+        'jenis_id': jenis_id,
+        'q': q,
+    })
+
+
+@role_required('pelanggan')
+def menu_detail(request, menu_id):
+    menu = get_object_or_404(
+        Menu.objects.select_related('kategori', 'jenis_catering'), pk=menu_id
+    )
+    menu_terkait = Menu.objects.filter(
+        kategori=menu.kategori, status_stok=Menu.StatusStok.TERSEDIA
+    ).exclude(pk=menu.pk).select_related('kategori')[:3]
+
+    return render(request, 'pelanggan/menu_detail.html', {
+        'menu': menu,
+        'menu_terkait': menu_terkait,
+        'paket_pilihan': PAKET_PORSI_CHOICES,
+    })
+
 
 # ==========================================================
 # 3. FORM PEMESANAN (total harga dihitung otomatis)
