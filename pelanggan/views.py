@@ -84,7 +84,6 @@ def dashboard(request):
     }
     return render(request, 'pelanggan/dashboard.html', context)
 
-
 # ==========================================================
 # 3. FORM PEMESANAN (total harga dihitung otomatis)
 # ==========================================================
