@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Dashboard — Meja Nusantara{% endblock %}
 {% block brand_sub %}Pelanggan{% endblock %}
 {% block topbar_title %}Dashboard{% endblock %}
@@ -10,20 +11,23 @@
 </div>
 <div class="nav-group">
   <div class="nav-label">Katering</div>
+  <a class="nav-link" href="{% url 'pelanggan:menu_list' %}">Daftar Menu</a>
+  <a class="nav-link" href="{% url 'pelanggan:buat_pesanan' %}">Buat Pesanan</a>
   <a class="nav-link" href="{% url 'pelanggan:riwayat_pesanan' %}">Riwayat Pesanan</a>
 </div>
 {% endblock %}
 
 {% block content %}
-<h1>Halo, {{ request.user.first_name|default:request.user.username }}</h1>
-<p style="color: var(--text-muted); margin-top: -8px; margin-bottom: 28px;">
-  Selamat datang kembali di Meja Nusantara. Yuk pesan katering untuk acara Anda berikutnya.
-</p>
 
-<div style="margin-bottom:28px;">
-  <a href="{% url 'pelanggan:buat_pesanan' %}" class="btn btn-primary">
-    + Buat Pesanan Baru
-  </a>
+<div class="greeting-banner">
+  <div class="greeting-banner-text">
+    <h1>Halo, {{ request.user.first_name|default:request.user.username }}</h1>
+    <p>Selamat datang kembali di Meja Nusantara. Yuk pesan katering untuk acara Anda berikutnya.</p>
+    <a href="{% url 'pelanggan:buat_pesanan' %}" class="btn btn-gold">+ Buat Pesanan Baru</a>
+  </div>
+  <div class="greeting-banner-image">
+    <img src="{% static 'images/banner-food.jpg' %}" alt="Menu katering Meja Nusantara">
+  </div>
 </div>
 
 <div class="stat-grid">
@@ -74,35 +78,65 @@
   </div>
 </div>
 
-<div class="panel">
-  <div class="panel-head">
-    <h3 style="margin:0;">Pesanan terbaru</h3>
-    <a href="{% url 'pelanggan:riwayat_pesanan' %}" class="btn btn-ghost">Semua</a>
+<div class="reco-history-grid">
+
+  <div class="panel">
+    <div class="panel-head">
+      <h3 style="margin:0;">Rekomendasi menu</h3>
+      <a href="{% url 'pelanggan:menu_list' %}" class="btn btn-ghost">Lihat semua</a>
+    </div>
+    {% if rekomendasi_menu %}
+    <div class="reco-grid">
+      {% for menu in rekomendasi_menu %}
+      <a href="{% url 'pelanggan:menu_detail' menu.id %}" class="reco-card">
+        {% if menu.foto %}
+          <img class="reco-card-img" src="{{ menu.foto.url }}" alt="{{ menu.nama_paket }}">
+        {% else %}
+          <div class="reco-card-img-empty">Belum ada foto</div>
+        {% endif %}
+        <div class="reco-card-body">
+          <div class="reco-card-cat">{{ menu.kategori.nama }}</div>
+          <div class="reco-card-name">{{ menu.nama_paket }}</div>
+          <div class="reco-card-price">Rp{{ menu.harga_per_porsi|floatformat:0 }} / porsi</div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p style="color: var(--text-muted);">Belum ada menu yang tersedia.</p>
+    {% endif %}
   </div>
-  {% if pesanan_terbaru %}
-  <div style="display:flex; flex-direction:column; gap: 12px;">
-    {% for pesanan in pesanan_terbaru %}
-    <a href="{% url 'pelanggan:detail_pesanan' pesanan.id %}" style="text-decoration:none; display:flex; justify-content:space-between; align-items:center; padding: 10px 0; border-bottom: 1px solid var(--border);">
-      <div>
-        <div class="mono" style="font-size:13px; color: var(--ink);">{{ pesanan.kode_pesanan }}</div>
-        <div style="font-size:12px; color: var(--text-muted);">{{ pesanan.item_list.count }} menu dipesan</div>
-      </div>
-      {% if pesanan.status == 'menunggu_pembayaran' %}
-        <span class="badge menunggu">Menunggu</span>
-      {% elif pesanan.status == 'diproses' %}
-        <span class="badge diproses">Diproses</span>
-      {% elif pesanan.status == 'selesai' %}
-        <span class="badge selesai">Selesai</span>
-      {% else %}
-        <span class="badge batal">Batal</span>
-      {% endif %}
-    </a>
-    {% endfor %}
+
+  <div class="panel">
+    <div class="panel-head">
+      <h3 style="margin:0;">Riwayat pemesanan</h3>
+      <a href="{% url 'pelanggan:riwayat_pesanan' %}" class="btn btn-ghost">Semua</a>
+    </div>
+    {% if pesanan_terbaru %}
+    <div>
+      {% for pesanan in pesanan_terbaru %}
+      <a href="{% url 'pelanggan:detail_pesanan' pesanan.id %}" class="order-row">
+        <div>
+          <div class="order-row-code mono">{{ pesanan.kode_pesanan }}</div>
+          <div class="order-row-sub">{{ pesanan.menu.nama_paket }}</div>
+        </div>
+        {% if pesanan.status == 'menunggu_pembayaran' %}
+          <span class="badge menunggu">Menunggu</span>
+        {% elif pesanan.status == 'diproses' %}
+          <span class="badge diproses">Diproses</span>
+        {% elif pesanan.status == 'selesai' %}
+          <span class="badge selesai">Selesai</span>
+        {% else %}
+          <span class="badge batal">Batal</span>
+        {% endif %}
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p style="color: var(--text-muted);">Anda belum pernah memesan.</p>
+    {% endif %}
   </div>
-  {% else %}
-  <p style="color: var(--text-muted);">Anda belum pernah memesan.</p>
-  {% endif %}
-</div>
 
 </div>
+
 {% endblock %}

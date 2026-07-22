@@ -40,7 +40,7 @@
       {% for m in menu_tersedia %}
       <div class="menu-row" data-kategori="{{ m.kategori_id }}" data-harga="{{ m.harga_per_porsi }}"
            style="display:flex; align-items:center; gap:12px; padding:12px 14px; border-bottom:1px solid var(--border);">
-        <input type="checkbox" name="item_menu" value="{{ m.id }}" class="chk-menu" id="chk_{{ m.id }}">
+        <input type="checkbox" name="item_menu" value="{{ m.id }}" class="chk-menu" id="chk_{{ m.id }}" {% if m.id == preselect_menu_id %}checked{% endif %}>
         <label for="chk_{{ m.id }}" style="flex:1; margin:0; font-weight:600; cursor:pointer;">
           {{ m.nama_paket }}
           <div style="font-weight:400; font-size:12.5px; color:var(--text-muted);">
