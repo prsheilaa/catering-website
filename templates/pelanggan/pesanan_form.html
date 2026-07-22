@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Buat Pesanan — Meja Nusantara{% endblock %}
 {% block brand_sub %}Pelanggan{% endblock %}
 {% block topbar_title %}Buat Pesanan{% endblock %}
@@ -10,6 +11,7 @@
 </div>
 <div class="nav-group">
   <div class="nav-label">Katering</div>
+  <a class="nav-link" href="{% url 'pelanggan:menu_list' %}">Daftar Menu</a>
   <a class="nav-link active" href="{% url 'pelanggan:buat_pesanan' %}">Buat Pesanan</a>
   <a class="nav-link" href="{% url 'pelanggan:riwayat_pesanan' %}">Riwayat Pesanan</a>
 </div>
@@ -19,122 +21,206 @@
 <div class="page-head">
   <div>
     <h1>Buat Pesanan</h1>
-    <p>Centang satu atau lebih menu, lalu tentukan paket porsi masing-masing.</p>
+    <p>Pilih menu yang Anda inginkan, lengkapi detail acara, lalu kirim pesanan.</p>
   </div>
 </div>
 
-<form method="POST" class="panel" style="max-width:720px;">
+<form method="POST" id="form-pesanan">
   {% csrf_token %}
+  <div class="order-layout">
 
-  <div class="field">
-    <label>Filter Kategori Menu</label>
-    <select id="id_kategori">
-      <option value="">Semua Kategori</option>
-      {% for k in kategori_list %}<option value="{{ k.id }}">{{ k.nama }}</option>{% endfor %}
-    </select>
-  </div>
+    <div class="order-main">
 
-  <div class="field">
-    <label>Pilih Menu</label>
-    <div id="daftar_menu" style="border:1px solid var(--border); border-radius:8px; overflow:hidden;">
-      {% for m in menu_tersedia %}
-      <div class="menu-row" data-kategori="{{ m.kategori_id }}" data-harga="{{ m.harga_per_porsi }}"
-           style="display:flex; align-items:center; gap:12px; padding:12px 14px; border-bottom:1px solid var(--border);">
-        <input type="checkbox" name="item_menu" value="{{ m.id }}" class="chk-menu" id="chk_{{ m.id }}" {% if m.id == preselect_menu_id %}checked{% endif %}>
-        <label for="chk_{{ m.id }}" style="flex:1; margin:0; font-weight:600; cursor:pointer;">
-          {{ m.nama_paket }}
-          <div style="font-weight:400; font-size:12.5px; color:var(--text-muted);">
-            {{ m.kategori.nama }} · Rp {{ m.harga_per_porsi|floatformat:0 }}/porsi
-          </div>
-        </label>
-        <select name="paket_{{ m.id }}" class="sel-paket" disabled style="width:190px;">
-          <option value="">— Paket —</option>
-          {% for nilai, label in paket_pilihan %}
-            <option value="{{ nilai }}">{{ label }}</option>
+      <div class="panel">
+        <div class="panel-head">
+          <h3 style="margin:0;">1. Pilih Menu</h3>
+        </div>
+
+        <div class="filter-pills" id="filter-kategori">
+          <button type="button" class="filter-pill active" data-kategori="">Semua kategori</button>
+          {% for k in kategori_list %}
+          <button type="button" class="filter-pill" data-kategori="{{ k.id }}">{{ k.nama }}</button>
           {% endfor %}
-        </select>
-        <span class="subtotal mono" style="width:110px; text-align:right; color:var(--text-muted);">Rp 0</span>
+        </div>
+
+        <div class="menu-pick-grid" id="daftar_menu">
+          {% for m in menu_tersedia %}
+          <div class="menu-pick-card" data-kategori="{{ m.kategori_id }}" data-harga="{{ m.harga_per_porsi }}" data-nama="{{ m.nama_paket }}">
+            <span class="menu-pick-card-check">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </span>
+            <input type="checkbox" name="item_menu" value="{{ m.id }}" class="chk-menu" id="chk_{{ m.id }}"
+                   {% if m.id == preselect_menu_id %}checked{% endif %} style="display:none;">
+            {% if m.foto %}
+              <img class="menu-pick-card-img" src="{{ m.foto.url }}" alt="{{ m.nama_paket }}">
+            {% else %}
+              <div class="menu-pick-card-img-empty">Belum ada foto</div>
+            {% endif %}
+            <div class="menu-pick-card-body">
+              <div class="menu-pick-card-cat">{{ m.kategori.nama }}</div>
+              <div class="menu-pick-card-name">{{ m.nama_paket }}</div>
+              <div class="menu-pick-card-price">Rp{{ m.harga_per_porsi|floatformat:0 }} / porsi</div>
+              <select name="paket_{{ m.id }}" class="menu-pick-card-select sel-paket">
+                <option value="">— Pilih paket porsi —</option>
+                {% for nilai, label in paket_pilihan %}
+                  <option value="{{ nilai }}">{{ label }}</option>
+                {% endfor %}
+              </select>
+              <div class="menu-pick-card-subtotal">Rp 0</div>
+            </div>
+          </div>
+          {% empty %}
+          <p style="padding:14px; grid-column: 1 / -1;">Belum ada menu tersedia.</p>
+          {% endfor %}
+        </div>
       </div>
-      {% empty %}
-      <p style="padding:14px;">Belum ada menu tersedia.</p>
-      {% endfor %}
+
+      <div class="panel">
+        <div class="panel-head">
+          <h3 style="margin:0;">2. Jenis Catering</h3>
+        </div>
+        <div class="pill-radio-group">
+          {% for j in jenis_list %}
+          <input type="radio" name="jenis_catering" value="{{ j.id }}" id="jenis_{{ j.id }}" {% if forloop.first %}checked{% endif %} required>
+          <label for="jenis_{{ j.id }}">{{ j.nama }}</label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h3 style="margin:0;">3. Detail Pemesanan</h3>
+        </div>
+
+        <div class="field-row" style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+          <div class="field">
+            <label>Nama Pemesan</label>
+            <div class="field-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              <input type="text" name="nama_pemesan" value="{{ default_nama }}" required>
+            </div>
+          </div>
+          <div class="field">
+            <label>Nomor Telepon</label>
+            <div class="field-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+              <input type="text" name="no_telepon" value="{{ default_telepon }}" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Alamat Pengiriman</label>
+          <textarea name="alamat" rows="2" required>{{ default_alamat }}</textarea>
+        </div>
+
+        <div class="field-row" style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+          <div class="field">
+            <label>Waktu Acara</label>
+            <input type="datetime-local" name="waktu_acara" required>
+          </div>
+          <div class="field">
+            <label>Catatan Tambahan</label>
+            <input type="text" name="catatan_tambahan" placeholder="Opsional">
+          </div>
+        </div>
+      </div>
+
     </div>
-  </div>
 
-  <div class="field">
-    <label>Jenis Catering</label>
-    <select name="jenis_catering" required>
-      {% for j in jenis_list %}<option value="{{ j.id }}">{{ j.nama }}</option>{% endfor %}
-    </select>
-  </div>
+    <aside class="order-summary">
+      <div class="panel">
+        <div class="panel-head">
+          <h3 style="margin:0;">Ringkasan Pesanan</h3>
+        </div>
+        <div class="order-summary-list" id="ringkasan-list">
+          <div class="order-summary-empty">Belum ada menu dipilih.</div>
+        </div>
+        <div class="order-summary-total">
+          <span class="order-summary-total-label">Total harga</span>
+          <span class="order-summary-total-value mono" id="ringkasan-total">Rp 0</span>
+        </div>
+        <button type="submit" class="btn btn-gold btn-block">Buat Pesanan</button>
+      </div>
+    </aside>
 
-  <div class="field">
-    <label>Nama Pemesan</label>
-    <input type="text" name="nama_pemesan" value="{{ default_nama }}" required>
   </div>
-
-  <div class="field">
-    <label>Nomor Telepon</label>
-    <input type="text" name="no_telepon" value="{{ default_telepon }}" required>
-  </div>
-
-  <div class="field">
-    <label>Alamat Pengiriman</label>
-    <textarea name="alamat" rows="2" required>{{ default_alamat }}</textarea>
-  </div>
-
-  <div class="field">
-    <label>Waktu Acara</label>
-    <input type="datetime-local" name="waktu_acara" required>
-  </div>
-
-  <div class="field">
-    <label>Catatan Tambahan</label>
-    <textarea name="catatan_tambahan" rows="2"></textarea>
-  </div>
-
-  <div class="panel" style="background:var(--paper-3); box-shadow:none; margin-bottom:20px;">
-    <div class="stat-label">Total Harga</div>
-    <div class="stat-value accent mono" id="total_harga">Rp 0</div>
-  </div>
-
-  <button type="submit" class="btn btn-primary btn-block">Buat Pesanan</button>
 </form>
 
 <script>
-  const kategoriSelect = document.getElementById('id_kategori');
-  const rows = Array.from(document.querySelectorAll('.menu-row'));
+(function () {
+  const cards = Array.from(document.querySelectorAll('.menu-pick-card'));
+  const filterBtns = Array.from(document.querySelectorAll('#filter-kategori .filter-pill'));
+  const ringkasanList = document.getElementById('ringkasan-list');
+  const ringkasanTotal = document.getElementById('ringkasan-total');
 
-  function filterKategori() {
-    const kategoriId = kategoriSelect.value;
-    rows.forEach(row => {
-      row.style.display = (!kategoriId || row.dataset.kategori === kategoriId) ? 'flex' : 'none';
-    });
+  function formatRupiah(n) {
+    return 'Rp ' + Math.round(n).toLocaleString('id-ID');
   }
 
-  function hitungTotal() {
+  function updateSummary() {
+    const rows = [];
     let total = 0;
-    rows.forEach(row => {
-      const chk = row.querySelector('.chk-menu');
-      const sel = row.querySelector('.sel-paket');
-      const subtotalEl = row.querySelector('.subtotal');
-      sel.disabled = !chk.checked;
-      if (!chk.checked) sel.value = '';
-      const harga = parseFloat(row.dataset.harga) || 0;
+
+    cards.forEach(card => {
+      const chk = card.querySelector('.chk-menu');
+      const sel = card.querySelector('.sel-paket');
+      const subtotalEl = card.querySelector('.menu-pick-card-subtotal');
+      const harga = parseFloat(card.dataset.harga) || 0;
       const jumlah = parseInt(sel.value) || 0;
-      const subtotal = chk.checked ? harga * jumlah : 0;
-      subtotalEl.textContent = 'Rp ' + subtotal.toLocaleString('id-ID');
-      total += subtotal;
+      const selected = chk.checked && jumlah > 0;
+
+      card.classList.toggle('selected', selected);
+      const subtotal = selected ? harga * jumlah : 0;
+      subtotalEl.textContent = selected ? formatRupiah(subtotal) : 'Rp 0';
+
+      if (selected) {
+        rows.push({ nama: card.dataset.nama, jumlah, subtotal });
+        total += subtotal;
+      }
     });
-    document.getElementById('total_harga').textContent = 'Rp ' + total.toLocaleString('id-ID');
+
+    if (rows.length === 0) {
+      ringkasanList.innerHTML = '<div class="order-summary-empty">Belum ada menu dipilih.</div>';
+    } else {
+      ringkasanList.innerHTML = rows.map(r => `
+        <div class="order-summary-row">
+          <div>
+            <div class="order-summary-row-name">${r.nama}</div>
+            <div class="order-summary-row-sub">${r.jumlah} porsi</div>
+          </div>
+          <div class="order-summary-row-price">${formatRupiah(r.subtotal)}</div>
+        </div>
+      `).join('');
+    }
+
+    ringkasanTotal.textContent = formatRupiah(total);
   }
 
-  rows.forEach(row => {
-    row.querySelector('.chk-menu').addEventListener('change', hitungTotal);
-    row.querySelector('.sel-paket').addEventListener('change', hitungTotal);
+  function onPaketChange(card) {
+    const chk = card.querySelector('.chk-menu');
+    const sel = card.querySelector('.sel-paket');
+    chk.checked = sel.value !== '';
+    updateSummary();
+  }
+
+  cards.forEach(card => {
+    const sel = card.querySelector('.sel-paket');
+    sel.addEventListener('change', () => onPaketChange(card));
   });
 
-  kategoriSelect.addEventListener('change', filterKategori);
-  hitungTotal();
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const kategoriId = btn.dataset.kategori;
+      cards.forEach(card => {
+        card.style.display = (!kategoriId || card.dataset.kategori === kategoriId) ? '' : 'none';
+      });
+    });
+  });
+
+  updateSummary();
+})();
 </script>
 {% endblock %}

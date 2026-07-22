@@ -81,8 +81,13 @@ def dashboard(request):
         'pesanan_diproses': pesanan_user.filter(status=Pesanan.StatusPesanan.DIPROSES).count(),
         'pesanan_selesai': pesanan_user.filter(status=Pesanan.StatusPesanan.SELESAI).count(),
         'pesanan_terbaru': pesanan_user.select_related('menu').order_by('-created_at')[:5],
+        'kategori_list': KategoriMenu.objects.filter(is_active=True),
+        'rekomendasi_menu': Menu.objects.filter(
+            status_stok=Menu.StatusStok.TERSEDIA
+        ).select_related('kategori').order_by('-id')[:3],
     }
     return render(request, 'pelanggan/dashboard.html', context)
+
 
 # ==========================================================
 # KATALOG MENU (daftar & detail)
@@ -206,6 +211,11 @@ def buat_pesanan(request):
         messages.success(request, "Pesanan berhasil dibuat. Silakan lanjutkan pembayaran.")
         return redirect('pelanggan:upload_pembayaran', pesanan_id=pesanan.id)
 
+    try:
+        preselect_menu_id = int(request.GET.get('menu', 0))
+    except (TypeError, ValueError):
+        preselect_menu_id = 0
+
     return render(request, 'pelanggan/pesanan_form.html', {
         'kategori_list': KategoriMenu.objects.filter(is_active=True),
         'menu_tersedia': menu_tersedia,
@@ -214,6 +224,7 @@ def buat_pesanan(request):
         'default_nama': request.user.get_full_name() or request.user.username,
         'default_telepon': request.user.no_telepon,
         'default_alamat': request.user.alamat,
+        'preselect_menu_id': preselect_menu_id,
     })
 
 # ==========================================================

@@ -1,74 +1,122 @@
 {% extends 'base.html' %}
-{% block title %}Riwayat Pesanan | Meja Nusantara{% endblock %}
+{% block title %}Riwayat Pesanan — Meja Nusantara{% endblock %}
 {% block brand_sub %}Pelanggan{% endblock %}
-{% block topbar_role %}Pelanggan{% endblock %}
+{% block topbar_title %}Riwayat Pesanan{% endblock %}
 
 {% block sidebar_nav %}
 <div class="nav-group">
-  <a href="{% url 'pelanggan:dashboard' %}" class="nav-link">Dashboard</a>
-  <a href="{% url 'pelanggan:menu_list' %}" class="nav-link">Daftar Menu</a>
-  <a href="{% url 'pelanggan:riwayat_pesanan' %}" class="nav-link active">Riwayat Pesanan</a>
+  <div class="nav-label">Ringkasan</div>
+  <a class="nav-link" href="{% url 'pelanggan:dashboard' %}">Dashboard</a>
+</div>
+<div class="nav-group">
+  <div class="nav-label">Katering</div>
+  <a class="nav-link" href="{% url 'pelanggan:menu_list' %}">Daftar Menu</a>
+  <a class="nav-link" href="{% url 'pelanggan:buat_pesanan' %}">Buat Pesanan</a>
+  <a class="nav-link active" href="{% url 'pelanggan:riwayat_pesanan' %}">Riwayat Pesanan</a>
 </div>
 {% endblock %}
 
 {% block content %}
-<div class="panel">
-  <h2>Riwayat Pesanan Saya</h2>
-
-  <form method="GET" style="margin:16px 0;">
-    <select name="status" class="form-control" style="max-width:220px;" onchange="this.form.submit()">
-      <option value="">Semua Status</option>
-      {% for value, label in status_choices %}
-        <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
-      {% endfor %}
-    </select>
-  </form>
-
-  <div class="table-responsive">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Kode Pesanan</th>
-          <th>Menu</th>
-          <th>Jumlah Porsi</th>
-          <th>Total Harga</th>
-          <th>Status</th>
-          <th>Tanggal</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for p in page_obj %}
-        <tr>
-          <td>{{ p.kode_pesanan }}</td>
-          <td>{{ p.menu.nama_paket }}</td>
-          <td>{{ p.jumlah_porsi }}</td>
-          <td>Rp {{ p.total_harga|floatformat:0 }}</td>
-          <td>
-            <span class="badge {% if p.status == 'selesai' %}selesai{% elif p.status == 'dibatalkan' %}dibatalkan{% else %}menunggu{% endif %}">
-              {{ p.get_status_display }}
-            </span>
-          </td>
-          <td>{{ p.created_at|date:"d M Y" }}</td>
-          <td><a href="{% url 'pelanggan:detail_pesanan' p.id %}" class="btn btn-ghost">Detail</a></td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="7">Belum ada pesanan.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+<div class="page-head">
+  <div>
+    <h1>Pesanan Saya</h1>
+    <p>Pantau status seluruh pesanan katering yang pernah Anda buat.</p>
   </div>
-
-  {% if page_obj.paginator.count %}
-  <div class="pagination" style="margin-top:16px;">
-    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}">‹ Sebelumnya</a>{% endif %}
-    <span>Halaman {{ page_obj.number }} dari {{ page_obj.paginator.num_pages }}</span>
-    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}">Berikutnya ›</a>{% endif %}
-  </div>
-  {% endif %}
 </div>
 
-<style>
-.badge.menunggu{background:#fff3cd;color:#8a6d3b;}
-</style>
+<div class="filter-pills">
+  <a href="{% url 'pelanggan:riwayat_pesanan' %}" class="filter-pill {% if not status %}active{% endif %}">
+    Semua ({{ total_pesanan_count }})
+  </a>
+  {% for value, label, count in status_tabs %}
+  <a href="?status={{ value }}" class="filter-pill {% if status == value %}active{% endif %}">
+    {{ label }} ({{ count }})
+  </a>
+  {% endfor %}
+</div>
+
+{% if page_obj %}
+<div class="order-list">
+  {% for p in page_obj %}
+  <div class="order-card st-{% if p.status == 'menunggu_pembayaran' %}menunggu{% elif p.status == 'diproses' %}diproses{% elif p.status == 'selesai' %}selesai{% else %}batal{% endif %}">
+    <div class="order-card-head">
+      <div>
+        <div class="order-card-code mono">Pesanan #{{ p.kode_pesanan }}</div>
+        <div class="order-card-date">{{ p.created_at|date:"d M Y, H:i" }}</div>
+      </div>
+      <div class="order-card-status">
+        {% if p.status == 'menunggu_pembayaran' %}
+          <span class="badge menunggu">Menunggu Pembayaran</span>
+        {% elif p.status == 'diproses' %}
+          <span class="badge diproses">Diproses</span>
+        {% elif p.status == 'selesai' %}
+          <span class="badge selesai">Selesai</span>
+        {% else %}
+          <span class="badge batal">Dibatalkan</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="order-card-meta">Jenis catering: <strong>{{ p.jenis_catering.nama }}</strong></div>
+    <div class="order-card-meta">
+      Metode pembayaran:
+      <strong>{% if p.pembayaran %}{{ p.pembayaran.get_metode_display }}{% else %}Belum dibayar{% endif %}</strong>
+    </div>
+    <div class="order-card-meta">Total pembayaran: <strong>Rp{{ p.total_harga|floatformat:0 }}</strong></div>
+
+    <div class="order-card-products">
+      <strong>Menu:</strong>
+      {% if p.item_list.all %}
+        {% for item in p.item_list.all %}{{ item.menu.nama_paket }} x{{ item.jumlah_porsi }}{% if not forloop.last %}, {% endif %}{% endfor %}
+      {% else %}
+        {{ p.menu.nama_paket }} x{{ p.jumlah_porsi }}
+      {% endif %}
+    </div>
+
+    <div class="order-card-actions">
+      {% if p.status == 'menunggu_pembayaran' %}
+        {% if not p.pembayaran %}
+          <a href="{% url 'pelanggan:upload_pembayaran' p.id %}" class="btn btn-success">Bayar Sekarang</a>
+        {% endif %}
+        <form method="post" action="{% url 'pelanggan:batalkan_pesanan' p.id %}" onsubmit="return confirm('Batalkan pesanan {{ p.kode_pesanan }}?');">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger-outline">Batalkan</button>
+        </form>
+      {% elif p.status == 'diproses' %}
+        <form method="post" action="{% url 'pelanggan:batalkan_pesanan' p.id %}" onsubmit="return confirm('Batalkan pesanan {{ p.kode_pesanan }}?');">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger-outline">Batalkan</button>
+        </form>
+      {% elif p.status == 'selesai' %}
+        <a href="{% url 'pelanggan:menu_list' %}" class="btn btn-gold">Pesan Lagi</a>
+      {% endif %}
+      <a href="{% url 'pelanggan:detail_pesanan' p.id %}" class="btn btn-ghost">Detail</a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% if page_obj.paginator.num_pages > 1 %}
+<div class="pagination">
+  <div class="pagination-count">
+    Halaman <strong>{{ page_obj.number }}</strong> dari <strong>{{ page_obj.paginator.num_pages }}</strong>
+  </div>
+  <div class="pagination-links">
+    {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}&status={{ status }}" class="btn btn-ghost">‹ Sebelumnya</a>
+    {% endif %}
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}&status={{ status }}" class="btn btn-ghost">Berikutnya ›</a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+{% else %}
+<div class="panel" style="text-align:center; padding: 50px 20px;">
+  <h3 style="margin-bottom: 6px;">Belum ada pesanan</h3>
+  <p style="color: var(--text-muted); margin-bottom: 18px;">Yuk mulai pesan katering pertama Anda.</p>
+  <a href="{% url 'pelanggan:menu_list' %}" class="btn btn-primary">Lihat Menu</a>
+</div>
+{% endif %}
 {% endblock %}
