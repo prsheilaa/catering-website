@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Upload Bukti Pembayaran — Meja Nusantara{% endblock %}
+{% block brand_sub %}Pelanggan{% endblock %}
+{% block topbar_title %}Pembayaran{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-group">
+  <div class="nav-label">Ringkasan</div>
+  <a class="nav-link" href="{% url 'pelanggan:dashboard' %}">Dashboard</a>
+</div>
+<div class="nav-group">
+  <div class="nav-label">Katering</div>
+  <a class="nav-link" href="{% url 'pelanggan:menu_list' %}">Daftar Menu</a>
+  <a class="nav-link active" href="{% url 'pelanggan:riwayat_pesanan' %}">Riwayat Pesanan</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Upload Bukti Pembayaran</h1>
+    <p>Pesanan {{ pesanan.kode_pesanan }} — Total <strong class="mono">Rp {{ pesanan.total_harga|floatformat:0 }}</strong></p>
+  </div>
+</div>
+
+<form method="POST" enctype="multipart/form-data" class="panel" style="max-width:560px;">
+  {% csrf_token %}
+
+  {% for field in form %}
+    <div class="field">
+      <label>{{ field.label }}</label>
+      {{ field }}
+      {% if field.errors %}
+        <div style="color:var(--danger); font-size:12.5px; margin-top:4px;">{{ field.errors|striptags }}</div>
+      {% endif %}
+    </div>
+  {% endfor %}
+
+  <button type="submit" class="btn btn-primary btn-block">Upload Bukti Pembayaran</button>
+</form>
+{% endblock %}

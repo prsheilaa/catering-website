@@ -128,4 +128,111 @@ Belum ada menu.
 
 </div>
 
+{% load static %}
+{% block title %}Daftar Menu — Meja Nusantara{% endblock %}
+{% block brand_sub %}Pelanggan{% endblock %}
+{% block topbar_title %}Daftar Menu{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-group">
+  <div class="nav-label">Ringkasan</div>
+  <a class="nav-link" href="{% url 'pelanggan:dashboard' %}">Dashboard</a>
+</div>
+<div class="nav-group">
+  <div class="nav-label">Katering</div>
+  <a class="nav-link active" href="{% url 'pelanggan:menu_list' %}">Daftar Menu</a>
+  <a class="nav-link" href="{% url 'pelanggan:buat_pesanan' %}">Buat Pesanan</a>
+  <a class="nav-link" href="{% url 'pelanggan:riwayat_pesanan' %}">Riwayat Pesanan</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Daftar Menu Katering</h1>
+    <p>Jelajahi semua paket menu yang tersedia, lalu pilih yang cocok untuk acara Anda.</p>
+  </div>
+</div>
+
+<div class="panel">
+  <form method="GET" class="menu-filter-bar">
+    <div class="field field-search">
+      <label>Cari menu</label>
+      <input type="text" name="q" value="{{ q }}" placeholder="Cari nama paket menu...">
+    </div>
+    <div class="field">
+      <label>Jenis catering</label>
+      <select name="jenis">
+        <option value="">Semua jenis</option>
+        {% for j in jenis_list %}
+        <option value="{{ j.id }}" {% if jenis_id == j.id|stringformat:"s" %}selected{% endif %}>{{ j.nama }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% if kategori_id %}<input type="hidden" name="kategori" value="{{ kategori_id }}">{% endif %}
+    <button type="submit" class="btn btn-primary">Terapkan</button>
+    {% if q or jenis_id or kategori_id %}
+      <a href="{% url 'pelanggan:menu_list' %}" class="btn btn-ghost">Reset</a>
+    {% endif %}
+  </form>
+
+  <div class="filter-pills">
+    <a href="?{% if jenis_id %}jenis={{ jenis_id }}&{% endif %}{% if q %}q={{ q }}&{% endif %}" class="filter-pill {% if not kategori_id %}active{% endif %}">Semua kategori</a>
+    {% for k in kategori_list %}
+    <a href="?kategori={{ k.id }}{% if jenis_id %}&jenis={{ jenis_id }}{% endif %}{% if q %}&q={{ q }}{% endif %}"
+       class="filter-pill {% if kategori_id == k.id|stringformat:"s" %}active{% endif %}">{{ k.nama }}</a>
+    {% endfor %}
+  </div>
+
+  {% if page_obj %}
+  <div class="reco-grid">
+    {% for menu in page_obj %}
+    <a href="{% url 'pelanggan:menu_detail' menu.id %}" class="reco-card">
+      <span class="reco-card-status">
+        {% if menu.status_stok == 'tersedia' %}
+          <span class="badge selesai">Tersedia</span>
+        {% else %}
+          <span class="badge kosong">Kosong</span>
+        {% endif %}
+      </span>
+      {% if menu.foto %}
+        <img class="reco-card-img" src="{{ menu.foto.url }}" alt="{{ menu.nama_paket }}">
+      {% else %}
+        <div class="reco-card-img-empty">Belum ada foto</div>
+      {% endif %}
+      <div class="reco-card-body">
+        <div class="reco-card-cat">{{ menu.kategori.nama }} · {{ menu.jenis_catering.nama }}</div>
+        <div class="reco-card-name">{{ menu.nama_paket }}</div>
+        <div class="reco-card-price">Rp{{ menu.harga_per_porsi|floatformat:0 }} / porsi</div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+
+  <div class="pagination">
+    <div class="pagination-count">
+      Menampilkan <strong>{{ page_obj.start_index }}</strong>–<strong>{{ page_obj.end_index }}</strong>
+      dari <strong>{{ page_obj.paginator.count }}</strong> menu
+    </div>
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="pagination-links">
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&kategori={{ kategori_id }}&jenis={{ jenis_id }}" class="btn btn-ghost">‹ Sebelumnya</a>
+      {% endif %}
+      <span class="pagination-current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&kategori={{ kategori_id }}&jenis={{ jenis_id }}" class="btn btn-ghost">Berikutnya ›</a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+  {% else %}
+  <div style="text-align:center; padding: 50px 20px;">
+    <img src="{% static 'images/empty-menu.svg' %}" width="120" alt="" style="opacity:0.7;">
+    <h3 style="margin-top:16px;">Menu tidak ditemukan</h3>
+    <p style="color: var(--text-muted);">Coba ubah kata kunci pencarian atau filter kategori.</p>
+  </div>
+  {% endif %}
+</div>
 {% endblock %}

@@ -180,6 +180,26 @@ class Pesanan(models.Model):
             self.total_harga = self.menu.harga_per_porsi * self.jumlah_porsi
         super().save(*args, **kwargs)
 
+class ItemPesanan(models.Model):
+    """
+    Detail menu di dalam satu pesanan (satu pesanan bisa berisi banyak menu).
+    """
+    pesanan = models.ForeignKey(Pesanan, on_delete=models.CASCADE, related_name='item_list')
+    menu = models.ForeignKey(Menu, on_delete=models.PROTECT, related_name='item_pesanan_list')
+    jumlah_porsi = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    subtotal = models.DecimalField(max_digits=14, decimal_places=2)
+
+    class Meta:
+        verbose_name_plural = "Item Pesanan"
+
+    def save(self, *args, **kwargs):
+        if not self.subtotal:
+            self.subtotal = self.menu.harga_per_porsi * self.jumlah_porsi
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.menu.nama_paket} x{self.jumlah_porsi}"
+
 
 # ==========================================================
 # PEMBAYARAN

@@ -74,6 +74,7 @@
 
 <div class="panel">
 
+<<<<<<< HEAD
     <form method="GET" style="margin-top:25px;margin-bottom:25px;">
 
         <div style="display:flex;gap:15px;">
@@ -88,10 +89,99 @@
             <button class="btn btn-primary">
                 Cari
             </button>
+=======
+    <div class="section-header">
+
+        <div>
+
+            <h2 style="margin-bottom:5px;">
+                Data Menu Catering
+            </h2>
+
+            <p style="color:#7b6f61;">
+                Kelola seluruh menu catering yang tersedia.
+            </p>
 
         </div>
 
-    </form>
+        <a href="{% url 'administrator:menu_tambah' %}" class="btn btn-primary">
+            + Tambah Menu
+        </a>
+
+    </div>
+
+    <div class="panel" style="padding:14px 20px; margin:20px 0;">
+>>>>>>> 80858615059cd2eb80ae485886b77f728c51e1ce
+
+        <form method="get"
+              style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+        
+        <input
+        type="text"
+        name="q"
+        value="{{ q }}"
+        placeholder="Cari menu..."
+        class="form-control"
+        style="max-width:260px;">
+        
+        <label style="font-size:13px;color:var(--text-muted);margin:0;">
+        Kategori
+        </label>
+        
+        <select
+        name="kategori"
+        onchange="this.form.submit()"
+        style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;">
+        
+        <option value="">Semua Kategori</option>
+        
+        {% for item in kategori_list %}
+        
+        <option value="{{ item.id }}"
+        {% if kategori == item.id|stringformat:"s" %}selected{% endif %}>
+        
+        {{ item.nama }}
+        
+        </option>
+        
+        {% endfor %}
+        
+        </select>
+        
+        
+        <label style="font-size:13px;color:var(--text-muted);margin:0;">
+        Jenis
+        </label>
+        
+        <select
+        name="jenis"
+        onchange="this.form.submit()"
+        style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;">
+        
+        <option value="">Semua Jenis</option>
+        
+        {% for item in jenis_list %}
+        
+        <option value="{{ item.id }}"
+        {% if jenis == item.id|stringformat:"s" %}selected{% endif %}>
+        
+        {{ item.nama }}
+        
+        </option>
+        
+        {% endfor %}
+        
+        </select>
+        
+        <button class="btn btn-primary">
+        
+        Cari
+        
+        </button>
+        
+        </form>
+        
+        </div>
 
     <div class="table-responsive">
 

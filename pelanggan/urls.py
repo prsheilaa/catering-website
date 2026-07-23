@@ -12,14 +12,16 @@ urlpatterns = [
     # Dashboard
     path('dashboard/', views.dashboard, name='dashboard'),
 
-    # Menu
+    # Katalog menu
     path('menu/', views.menu_list, name='menu_list'),
+    path('menu/<int:menu_id>/', views.menu_detail, name='menu_detail'),
 
     # Pemesanan
-    path('pesan/<int:menu_id>/', views.buat_pesanan, name='buat_pesanan'),
+    path('pesan/', views.buat_pesanan, name='buat_pesanan'),
     path('pesanan/<int:pesanan_id>/bayar/', views.upload_pembayaran, name='upload_pembayaran'),
 
     # Riwayat & detail
     path('riwayat/', views.riwayat_pesanan, name='riwayat_pesanan'),
     path('pesanan/<int:pesanan_id>/', views.detail_pesanan, name='detail_pesanan'),
+    path('pesanan/<int:pesanan_id>/batalkan/', views.batalkan_pesanan, name='batalkan_pesanan'),
 ]
