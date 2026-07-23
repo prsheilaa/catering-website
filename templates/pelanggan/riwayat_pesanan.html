@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block title %}Riwayat Pemesanan{% endblock %}
+{% block brand_sub %}Pelanggan{% endblock %}
+{% block topbar_title %}Riwayat Pemesanan{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-group">
+
+    <div class="nav-label">
+        Ringkasan
+    </div>
+
+    <a class="nav-link"
+       href="{% url 'pelanggan:dashboard' %}">
+        Dashboard
+    </a>
+
+</div>
+
+<div class="nav-group">
+
+    <div class="nav-label">
+        Katering
+    </div>
+
+    <a class="nav-link"
+       href="{% url 'pelanggan:menu_list' %}">
+        Daftar Menu
+    </a>
+
+    <a class="nav-link active"
+       href="{% url 'pelanggan:riwayat_pesanan' %}">
+        Riwayat Pesanan
+    </a>
+
+</div>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-head">
+    <div>
+        <h1>Riwayat Pemesanan</h1>
+        <p>Lihat seluruh pesanan catering yang pernah Anda lakukan.</p>
+    </div>
+</div>
+
+<div class="panel">
+
+    <form method="GET">
+
+        <div style="display:flex;gap:15px;flex-wrap:wrap;">
+
+            <input
+                type="text"
+                name="q"
+                class="form-control"
+                placeholder="Cari kode pesanan..."
+                value="{{ request.GET.q }}">
+
+            <select
+                name="status"
+                class="form-control"
+                style="max-width:220px;">
+
+                <option value="">Semua Status</option>
+
+                <option value="menunggu_pembayaran"
+                {% if request.GET.status == "menunggu_pembayaran" %}
+                selected
+                {% endif %}>
+                    Menunggu Pembayaran
+                </option>
+
+                <option value="diproses"
+                {% if request.GET.status == "diproses" %}
+                selected
+                {% endif %}>
+                    Diproses
+                </option>
+
+                <option value="selesai"
+                {% if request.GET.status == "selesai" %}
+                selected
+                {% endif %}>
+                    Selesai
+                </option>
+
+                <option value="dibatalkan"
+                {% if request.GET.status == "dibatalkan" %}
+                selected
+                {% endif %}>
+                    Dibatalkan
+                </option>
+
+            </select>
+
+            <button class="btn btn-primary">
+                Cari
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+<div class="panel">
+
+{% if pesanan_list %}
+
+<table class="data">
+
+    <thead>
+
+        <tr>
+
+            <th>Kode</th>
+            <th>Menu</th>
+            <th>Tanggal Acara</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Aksi</th>
+
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+    {% for pesanan in pesanan_list %}
+
+        <tr>
+
+            <td class="mono">
+
+                {{ pesanan.kode_pesanan }}
+
+            </td>
+
+            <td>
+
+                {{ pesanan.menu.nama_paket }}
+
+            </td>
+
+            <td>
+
+                {{ pesanan.waktu_acara|date:"d M Y H:i" }}
+
+            </td>
+
+            <td>
+
+                Rp {{ pesanan.total_harga }}
+
+            </td>
+
+            <td>
+
+                {% if pesanan.status == 'menunggu_pembayaran' %}
+
+                    <span class="badge menunggu">
+                        Menunggu
+                    </span>
+
+                {% elif pesanan.status == 'diproses' %}
+
+                    <span class="badge diproses">
+                        Diproses
+                    </span>
+
+                {% elif pesanan.status == 'selesai' %}
+
+                    <span class="badge selesai">
+                        Selesai
+                    </span>
+
+                {% elif pesanan.status == 'dibatalkan' %}
+
+                    <span class="badge batal">
+                        Dibatalkan
+                    </span>
+
+                {% endif %}
+
+            </td>
+
+            <td>
+
+                <a
+                href="{% url 'pelanggan:detail_pesanan' pesanan.id %}"
+                class="btn btn-primary">
+
+                    Detail
+
+                </a>
+
+            </td>
+
+        </tr>
+
+    {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% else %}
+
+<div style="text-align:center;padding:50px;">
+
+    <h3>Belum Ada Riwayat Pesanan</h3>
+
+    <p style="color:gray;margin-bottom:25px;">
+
+        Anda belum pernah melakukan pemesanan.
+
+    </p>
+
+    <a
+    href="{% url 'pelanggan:menu_list' %}"
+    class="btn btn-primary">
+
+        Pesan Sekarang
+
+    </a>
+
+</div>
+
+{% endif %}
+
+</div>
+
+{% endblock %}

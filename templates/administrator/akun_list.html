@@ -5,52 +5,67 @@
 {% block topbar_title %}Kelola Akun{% endblock %}
 
 {% block sidebar_nav %}
+
 <div class="nav-group">
-  <div class="nav-label">Ringkasan</div>
-  <a class="nav-link" href="{% url 'administrator:dashboard' %}">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-    Dashboard
-  </a>
+    <div class="nav-label">Ringkasan</div>
+
+    <a class="nav-link" href="{% url 'administrator:dashboard' %}">
+        Dashboard
+    </a>
 </div>
+
 <div class="nav-group">
-  <div class="nav-label">Katalog</div>
-  <a class="nav-link" href="{% url 'administrator:menu_list' %}">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v7c0 1 1 2 2 2h2c1 0 2-1 2-2V3"/><path d="M6 12v9"/><path d="M15 3c-1.5 0-3 1.5-3 4v3h3v9"/><path d="M15 3v6"/></svg>
-    Menu
-  </a>
-  <a class="nav-link" href="{% url 'administrator:kategori_list' %}">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 12 22l-9-9V3h10z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
-    Kategori
-  </a>
-  <a class="nav-link" href="{% url 'administrator:jenis_catering_list' %}">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="14" height="11"/><path d="M15 10h4l3 3v4h-7z"/><circle cx="5.5" cy="19" r="1.6"/><circle cx="17.5" cy="19" r="1.6"/></svg>
-    Jenis catering
-  </a>
+    <div class="nav-label">Katalog</div>
+
+    <a class="nav-link" href="{% url 'administrator:menu_list' %}">
+        Menu
+    </a>
+
+    <a class="nav-link" href="{% url 'administrator:kategori_list' %}">
+        Kategori
+    </a>
+
+    <a class="nav-link" href="{% url 'administrator:jenis_catering_list' %}">
+        Jenis Catering
+    </a>
 </div>
+
 <div class="nav-group">
-  <div class="nav-label">Operasional</div>
-  <a class="nav-link active" href="{% url 'administrator:akun_list' %}">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-    Kelola akun
-  </a>
-  <a class="nav-link" href="{% url 'administrator:transaksi_list' %}">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3h16v18l-3-2-2 2-2-2-2 2-2-2-2 2-3-2z"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-    Transaksi
-  </a>
-  <a class="nav-link" href="{% url 'administrator:laporan' %}">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-    Laporan
-  </a>
+    <div class="nav-label">Operasional</div>
+
+    <a class="nav-link active" href="{% url 'administrator:akun_list' %}">
+        Kelola Akun
+    </a>
+
+    <a class="nav-link" href="{% url 'administrator:transaksi_list' %}">
+        Transaksi
+    </a>
+
+    <a class="nav-link" href="{% url 'administrator:laporan' %}">
+        Laporan
+    </a>
 </div>
+
 {% endblock %}
 
 {% block content %}
-<div class="panel-head" style="margin-bottom: 20px;">
-  <div>
-    <h1 style="margin-bottom:2px;">Kelola Akun</h1>
-    <p style="color: var(--text-muted); margin:0;">Manajemen akun petugas dan pelanggan.</p>
-  </div>
-  <a href="{% url 'administrator:akun_tambah' %}" class="btn btn-primary">+ Tambah Akun</a>
+<div class="page-head">
+
+    <div>
+
+        <h1>Kelola Akun</h1>
+
+        <p>Manajemen akun petugas dan pelanggan.</p>
+
+    </div>
+
+    <a href="{% url 'administrator:akun_tambah' %}"
+       class="btn btn-primary">
+
+        + Tambah Akun
+
+    </a>
+
 </div>
 
 <div class="panel" style="padding: 14px 20px; margin-bottom: 18px;">

@@ -1,22 +1,27 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Kategori Menu | Meja Nusantara{% endblock %}
-
-{% block brand_sub %}
-Administrator
-{% endblock %}
-
-{% block topbar_role %}
-Administrator
-{% endblock %}
+{% block title %}Kategori Menu - Meja Nusantara{% endblock %}
+{% block brand_sub %}Panel Admin{% endblock %}
+{% block topbar_title %}Kategori{% endblock %}
+{% block topbar_role %}Administrator{% endblock %}
 
 {% block sidebar_nav %}
 
 <div class="nav-group">
+    <div class="nav-label">Ringkasan</div>
 
     <a href="{% url 'administrator:dashboard' %}" class="nav-link">
         Dashboard
+    </a>
+</div>
+
+<div class="nav-group">
+
+    <div class="nav-label">Katalog</div>
+
+    <a href="{% url 'administrator:menu_list' %}" class="nav-link">
+        Menu
     </a>
 
     <a href="{% url 'administrator:kategori_list' %}" class="nav-link active">
@@ -27,9 +32,11 @@ Administrator
         Jenis Catering
     </a>
 
-    <a href="{% url 'administrator:menu_list' %}" class="nav-link">
-        Menu Catering
-    </a>
+</div>
+
+<div class="nav-group">
+
+    <div class="nav-label">Operasional</div>
 
     <a href="{% url 'administrator:akun_list' %}" class="nav-link">
         Kelola Akun

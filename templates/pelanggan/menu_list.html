@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Daftar Menu{% endblock %}
+{% block sidebar_nav %}
+<div class="nav-group">
+  <div class="nav-label">Ringkasan</div>
+
+  <a class="nav-link"
+     href="{% url 'pelanggan:dashboard' %}">
+    Dashboard
+  </a>
+</div>
+
+<div class="nav-group">
+  <div class="nav-label">Katering</div>
+
+  <a class="nav-link active"
+     href="{% url 'pelanggan:menu_list' %}">
+    Daftar Menu
+  </a>
+
+  <a class="nav-link"
+     href="{% url 'pelanggan:riwayat_pesanan' %}">
+    Riwayat Pesanan
+  </a>
+</div>
+{% endblock %}
+{% block content %}
+
+<div class="page-head">
+    <div>
+        <h1>Daftar Menu Catering</h1>
+        <p>Pilih menu favorit untuk acara Anda.</p>
+    </div>
+</div>
+
+<div class="panel">
+
+<form method="get">
+
+<div style="display:flex;gap:12px;">
+
+<input
+type="text"
+name="q"
+value="{{ request.GET.q }}"
+class="form-control"
+placeholder="Cari menu...">
+
+<button class="btn btn-primary">
+
+Cari
+
+</button>
+
+</div>
+
+</form>
+
+</div>
+
+<div style="
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+gap:20px;
+">
+
+{% for menu in menu_list %}
+
+<div class="panel">
+
+{% if menu.foto %}
+
+<img src="{{ menu.foto.url }}"
+style="
+width:100%;
+height:180px;
+object-fit:cover;
+border-radius:10px;
+margin-bottom:15px;">
+
+{% endif %}
+
+<h3>
+
+{{ menu.nama_paket }}
+
+</h3>
+
+<p style="color:gray;">
+
+{{ menu.kategori.nama }}
+
+</p>
+
+<p>
+
+{{ menu.deskripsi|truncatechars:100 }}
+
+</p>
+
+<h3 style="color:#8B5E3C;">
+
+Rp {{ menu.harga_per_porsi|floatformat:0 }}
+
+</h3>
+
+<a
+href="{% url 'pelanggan:buat_pesanan' menu.id %}"
+class="btn btn-primary"
+style="width:100%;">
+
+Pesan Sekarang
+
+</a>
+
+</div>
+
+{% empty %}
+
+<div class="panel">
+
+Belum ada menu.
+
+</div>
+
+{% endfor %}
+
+</div>
+
+{% endblock %}
