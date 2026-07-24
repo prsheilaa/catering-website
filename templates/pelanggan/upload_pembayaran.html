@@ -11,6 +11,7 @@
 <div class="nav-group">
   <div class="nav-label">Katering</div>
   <a class="nav-link" href="{% url 'pelanggan:menu_list' %}">Daftar Menu</a>
+  <a class="nav-link" href="{% url 'pelanggan:buat_pesanan' %}">Buat Pesanan</a>
   <a class="nav-link active" href="{% url 'pelanggan:riwayat_pesanan' %}">Riwayat Pesanan</a>
 </div>
 {% endblock %}
@@ -19,23 +20,201 @@
 <div class="page-head">
   <div>
     <h1>Upload Bukti Pembayaran</h1>
-    <p>Pesanan {{ pesanan.kode_pesanan }} — Total <strong class="mono">Rp {{ pesanan.total_harga|floatformat:0 }}</strong></p>
+    <p>Pesanan <strong class="mono">{{ pesanan.kode_pesanan }}</strong> — Total
+      <strong class="mono">Rp{{ pesanan.total_harga|floatformat:0 }}</strong>
+    </p>
   </div>
 </div>
 
-<form method="POST" enctype="multipart/form-data" class="panel" style="max-width:560px;">
-  {% csrf_token %}
+<div class="order-layout">
+  <div class="order-main">
 
-  {% for field in form %}
-    <div class="field">
-      <label>{{ field.label }}</label>
-      {{ field }}
-      {% if field.errors %}
-        <div style="color:var(--danger); font-size:12.5px; margin-top:4px;">{{ field.errors|striptags }}</div>
-      {% endif %}
+    <div class="panel">
+      <div class="panel-head">
+        <h3 style="margin:0;">1. Pilih Metode Pembayaran</h3>
+      </div>
+      <div class="pill-radio-group" id="metode-group">
+        <input type="radio" name="metode" value="transfer_bank" id="metode_transfer" checked>
+        <label for="metode_transfer">Transfer Bank (VA)</label>
+        <input type="radio" name="metode" value="e_wallet" id="metode_ewallet">
+        <label for="metode_ewallet">E-Wallet</label>
+        <input type="radio" name="metode" value="qris" id="metode_qris">
+        <label for="metode_qris">QRIS</label>
+        <input type="radio" name="metode" value="tunai" id="metode_tunai">
+        <label for="metode_tunai">Tunai</label>
+      </div>
     </div>
-  {% endfor %}
 
-  <button type="submit" class="btn btn-primary btn-block">Upload Bukti Pembayaran</button>
-</form>
+    <div class="panel">
+      <div class="panel-head">
+        <h3 style="margin:0;">2. Tujuan Pembayaran</h3>
+      </div>
+
+      <div class="payment-target" data-target="transfer_bank">
+        <div class="payment-target-row">
+          <div>
+            <div class="payment-target-label">Bank tujuan</div>
+            <div class="payment-target-value">{{ bank_name }}</div>
+          </div>
+        </div>
+        <div class="payment-target-row">
+          <div>
+            <div class="payment-target-label">Nomor Virtual Account</div>
+            <div class="payment-target-value mono" id="va-number">{{ pesanan.virtual_account_number }}</div>
+          </div>
+          <button type="button" class="btn btn-ghost btn-copy" data-copy="{{ pesanan.virtual_account_number }}">Salin</button>
+        </div>
+        <div class="payment-target-row">
+          <div>
+            <div class="payment-target-label">Atas nama</div>
+            <div class="payment-target-value">Meja Nusantara Catering</div>
+          </div>
+        </div>
+        <p class="payment-target-note">Transfer sesuai nominal total pesanan ke nomor Virtual Account di atas melalui ATM, m-banking, atau internet banking.</p>
+      </div>
+
+      <div class="payment-target" data-target="e_wallet" hidden>
+        <div class="payment-target-row">
+          <div>
+            <div class="payment-target-label">Provider</div>
+            <div class="payment-target-value">{{ ewallet_provider }}</div>
+          </div>
+        </div>
+        <div class="payment-target-row">
+          <div>
+            <div class="payment-target-label">Nomor tujuan</div>
+            <div class="payment-target-value mono">{{ ewallet_number }}</div>
+          </div>
+          <button type="button" class="btn btn-ghost btn-copy" data-copy="{{ ewallet_number }}">Salin</button>
+        </div>
+        <div class="payment-target-row">
+          <div>
+            <div class="payment-target-label">Atas nama</div>
+            <div class="payment-target-value">{{ ewallet_account_name }}</div>
+          </div>
+        </div>
+        <p class="payment-target-note">Kirim pembayaran ke nomor {{ ewallet_provider }} di atas, lalu unggah tangkapan layar bukti transfer.</p>
+      </div>
+
+      <div class="payment-target" data-target="qris" hidden>
+        <div class="payment-target-qris">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data={{ qris_merchant_name|urlencode }}%20-%20{{ pesanan.kode_pesanan|urlencode }}%20-%20Rp{{ pesanan.total_harga|floatformat:0 }}"
+               alt="QRIS {{ qris_merchant_name }}" width="200" height="200">
+          <div>
+            <div class="payment-target-label">Atas nama merchant</div>
+            <div class="payment-target-value">{{ qris_merchant_name }}</div>
+            <p class="payment-target-note">Pindai kode QRIS ini memakai aplikasi bank atau e-wallet mana pun, pastikan nominal sesuai total pesanan.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="payment-target" data-target="tunai" hidden>
+        <div class="payment-target-cash">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2.5"></circle></svg>
+          <div>
+            <div class="payment-target-value">Bayar tunai langsung ke petugas</div>
+            <p class="payment-target-note">Tidak perlu mengunggah bukti pembayaran. Siapkan uang pas senilai <strong>Rp{{ pesanan.total_harga|floatformat:0 }}</strong> saat pesanan diantar/diambil.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-bukti">
+      <div class="panel-head">
+        <h3 style="margin:0;">3. Unggah Bukti Pembayaran</h3>
+      </div>
+      <form method="POST" enctype="multipart/form-data" id="form-pembayaran">
+        {% csrf_token %}
+        {{ form.metode }}
+
+        <div class="field">
+          <label for="{{ form.jumlah_bayar.id_for_label }}">Jumlah Dibayar</label>
+          {{ form.jumlah_bayar }}
+          {% if form.jumlah_bayar.errors %}
+            <div style="color:var(--danger); font-size:12.5px; margin-top:4px;">{{ form.jumlah_bayar.errors|striptags }}</div>
+          {% endif %}
+        </div>
+
+        <div class="field" id="field-bukti">
+          <label for="{{ form.bukti_bayar.id_for_label }}">Bukti Pembayaran</label>
+          {{ form.bukti_bayar }}
+          {% if form.bukti_bayar.errors %}
+            <div style="color:var(--danger); font-size:12.5px; margin-top:4px;">{{ form.bukti_bayar.errors|striptags }}</div>
+          {% endif %}
+        </div>
+
+        <p id="tunai-note" style="color: var(--text-muted); font-size:13.5px; display:none;">
+          Metode tunai tidak memerlukan bukti pembayaran — cukup klik tombol di bawah untuk menandai pesanan sebagai menunggu pembayaran di tempat.
+        </p>
+
+        <button type="submit" class="btn btn-primary btn-block">Konfirmasi Pembayaran</button>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  .payment-target { display: flex; flex-direction: column; gap: 4px; }
+  .payment-target-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px 0; border-bottom: 1px dashed var(--border);
+  }
+  .payment-target-row:last-of-type { border-bottom: none; }
+  .payment-target-label { font-size: 12px; color: var(--text-muted); margin-bottom: 2px; }
+  .payment-target-value { font-size: 15px; font-weight: 700; color: var(--ink); }
+  .payment-target-note { font-size: 13px; color: var(--text-muted); margin: 10px 0 0; line-height: 1.6; }
+  .btn-copy { padding: 7px 14px; font-size: 12.5px; flex-shrink: 0; }
+  .payment-target-qris { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+  .payment-target-qris img { border-radius: var(--radius-sm); border: 1px solid var(--border); flex-shrink: 0; }
+  .payment-target-cash { display: flex; align-items: flex-start; gap: 14px; }
+  .payment-target-cash svg { width: 30px; height: 30px; color: var(--success); flex-shrink: 0; margin-top: 2px; }
+</style>
+
+<script>
+(function () {
+  const radios = document.querySelectorAll('#metode-group input[name="metode"]');
+  const targets = document.querySelectorAll('.payment-target');
+  const buktiField = document.getElementById('field-bukti');
+  const tunaiNote = document.getElementById('tunai-note');
+  const formMetodeSelect = document.getElementById('id_metode');
+  const buktiInput = document.getElementById('id_bukti_bayar');
+
+  function applyMetode(value) {
+    targets.forEach(t => { t.hidden = t.dataset.target !== value; });
+
+    if (value === 'tunai') {
+      buktiField.style.display = 'none';
+      tunaiNote.style.display = 'block';
+      if (buktiInput) buktiInput.required = false;
+    } else {
+      buktiField.style.display = '';
+      tunaiNote.style.display = 'none';
+      if (buktiInput) buktiInput.required = true;
+    }
+
+    if (formMetodeSelect) formMetodeSelect.value = value;
+  }
+
+  radios.forEach(r => {
+    r.addEventListener('change', () => applyMetode(r.value));
+  });
+
+  document.querySelectorAll('.btn-copy').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const text = btn.dataset.copy;
+      navigator.clipboard && navigator.clipboard.writeText(text).then(() => {
+        const original = btn.textContent;
+        btn.textContent = 'Tersalin!';
+        setTimeout(() => { btn.textContent = original; }, 1500);
+      });
+    });
+  });
+
+  const checked = document.querySelector('#metode-group input[name="metode"]:checked');
+  applyMetode(checked ? checked.value : 'transfer_bank');
+
+  if (formMetodeSelect) formMetodeSelect.style.display = 'none';
+})();
+</script>
 {% endblock %}

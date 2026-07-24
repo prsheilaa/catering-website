@@ -1,60 +1,99 @@
 {% extends 'base.html' %}
-{% block title %}Detail Pesanan | Meja Nusantara{% endblock %}
+{% block title %}Detail Pesanan — Meja Nusantara{% endblock %}
 {% block brand_sub %}Pelanggan{% endblock %}
-{% block topbar_role %}Pelanggan{% endblock %}
+{% block topbar_title %}Detail Pesanan{% endblock %}
 
 {% block sidebar_nav %}
 <div class="nav-group">
-  <a href="{% url 'pelanggan:dashboard' %}" class="nav-link">Dashboard</a>
-  <a href="{% url 'pelanggan:menu_list' %}" class="nav-link">Daftar Menu</a>
-  <a href="{% url 'pelanggan:riwayat_pesanan' %}" class="nav-link active">Riwayat Pesanan</a>
+  <div class="nav-label">Ringkasan</div>
+  <a class="nav-link" href="{% url 'pelanggan:dashboard' %}">Dashboard</a>
+</div>
+<div class="nav-group">
+  <div class="nav-label">Katering</div>
+  <a class="nav-link" href="{% url 'pelanggan:menu_list' %}">Daftar Menu</a>
+  <a class="nav-link" href="{% url 'pelanggan:buat_pesanan' %}">Buat Pesanan</a>
+  <a class="nav-link active" href="{% url 'pelanggan:riwayat_pesanan' %}">Riwayat Pesanan</a>
 </div>
 {% endblock %}
 
 {% block content %}
-<div class="panel" style="max-width:640px;">
-  <div class="section-header">
-    <h2>{{ pesanan.kode_pesanan }}</h2>
-    <span class="badge {% if pesanan.status == 'selesai' %}selesai{% elif pesanan.status == 'dibatalkan' %}dibatalkan{% else %}menunggu{% endif %}">
-      {{ pesanan.get_status_display }}
-    </span>
+<div class="breadcrumb">
+  <a href="{% url 'pelanggan:riwayat_pesanan' %}">Riwayat Pesanan</a> › {{ pesanan.kode_pesanan }}
+</div>
+
+<div class="panel" style="max-width:680px;">
+  <div class="panel-head">
+    <h3 style="margin:0;">Pesanan #{{ pesanan.kode_pesanan }}</h3>
+    {% if pesanan.status == 'menunggu_pembayaran' %}
+      <span class="badge menunggu">Menunggu Pembayaran</span>
+    {% elif pesanan.status == 'diproses' %}
+      <span class="badge diproses">Diproses</span>
+    {% elif pesanan.status == 'selesai' %}
+      <span class="badge selesai">Selesai</span>
+    {% else %}
+      <span class="badge batal">Dibatalkan</span>
+    {% endif %}
   </div>
 
-  <table class="table" style="margin-top:16px;">
-    <tr>
-  <td>Menu Dipesan</td>
-  <td>
-    <ul style="margin:0; padding-left:18px;">
-      {% for item in pesanan.item_list.all %}
-        <li>{{ item.menu.nama_paket }} — {{ item.jumlah_porsi }} porsi — <span class="mono">Rp {{ item.subtotal|floatformat:0 }}</span></li>
-      {% endfor %}
-    </ul>
-  </td>
-</tr>
-    <tr><td>Jenis Catering</td><td>{{ pesanan.jenis_catering.nama }}</td></tr>
-    <tr><td>Nama Pemesan</td><td>{{ pesanan.nama_pemesan }}</td></tr>
-    <tr><td>No. Telepon</td><td>{{ pesanan.no_telepon }}</td></tr>
-    <tr><td>Alamat</td><td>{{ pesanan.alamat }}</td></tr>
-    <tr><td>Waktu Acara</td><td>{{ pesanan.waktu_acara|date:"d M Y, H:i" }}</td></tr>
-    <tr><td>Jumlah Porsi</td><td>{{ pesanan.jumlah_porsi }}</td></tr>
-    <tr><td>Catatan</td><td>{{ pesanan.catatan_tambahan|default:"-" }}</td></tr>
-    <tr><td>Total Harga</td><td><strong style="color:#8B5E3C;">Rp {{ pesanan.total_harga|floatformat:0 }}</strong></td></tr>
-  </table>
+  <div class="spec-list">
+    <div class="spec-row">
+      <span class="spec-row-label">Menu dipesan</span>
+      <span class="spec-row-value" style="text-align:right;">
+        {% if pesanan.item_list.all %}
+          {% for item in pesanan.item_list.all %}{{ item.menu.nama_paket }} x{{ item.jumlah_porsi }}{% if not forloop.last %}, {% endif %}{% endfor %}
+        {% else %}
+          {{ pesanan.menu.nama_paket }} x{{ pesanan.jumlah_porsi }}
+        {% endif %}
+      </span>
+    </div>
+    <div class="spec-row"><span class="spec-row-label">Jenis catering</span><span class="spec-row-value">{{ pesanan.jenis_catering.nama }}</span></div>
+    <div class="spec-row"><span class="spec-row-label">Nama pemesan</span><span class="spec-row-value">{{ pesanan.nama_pemesan }}</span></div>
+    <div class="spec-row"><span class="spec-row-label">No. telepon</span><span class="spec-row-value">{{ pesanan.no_telepon }}</span></div>
+    <div class="spec-row"><span class="spec-row-label">Alamat</span><span class="spec-row-value" style="text-align:right;">{{ pesanan.alamat }}</span></div>
+    <div class="spec-row"><span class="spec-row-label">Waktu acara</span><span class="spec-row-value">{{ pesanan.waktu_acara|date:"d M Y, H:i" }}</span></div>
+    <div class="spec-row"><span class="spec-row-label">Catatan</span><span class="spec-row-value">{{ pesanan.catatan_tambahan|default:"-" }}</span></div>
+    <div class="spec-row"><span class="spec-row-label">Total harga</span><span class="spec-row-value" style="color:var(--coral-rose);">Rp{{ pesanan.total_harga|floatformat:0 }}</span></div>
+  </div>
 
-  {% if not pembayaran and pesanan.status == 'menunggu_pembayaran' %}
-    <a href="{% url 'pelanggan:upload_pembayaran' pesanan.id %}" class="btn btn-primary" style="margin-top:16px;">Upload Bukti Pembayaran</a>
+  <h3 style="margin: 22px 0 10px;">Pembayaran</h3>
+  {% if pembayaran %}
+    <div class="payment-info-mini" style="display:block;">
+      <div class="payment-info-mini-method" style="margin-bottom: 6px;">
+        <span class="pill-tag">{{ pembayaran.get_metode_display }}</span>
+        <span class="badge {% if pembayaran.status_verifikasi == 'valid' %}selesai{% elif pembayaran.status_verifikasi == 'tidak_valid' %}batal{% else %}menunggu{% endif %}">
+          {{ pembayaran.get_status_verifikasi_display }}
+        </span>
+      </div>
+      {% if pembayaran.metode == 'transfer_bank' %}
+        <div>Transfer ke VA <span class="mono">{{ pesanan.virtual_account_number }}</span> — {{ bank_name }}</div>
+      {% elif pembayaran.metode == 'e_wallet' %}
+        <div>{{ ewallet_provider }} — <span class="mono">{{ ewallet_number }}</span></div>
+      {% elif pembayaran.metode == 'qris' %}
+        <div>QRIS — {{ qris_merchant_name }}</div>
+      {% else %}
+        <div>Dibayar tunai langsung ke petugas</div>
+      {% endif %}
+      <div style="margin-top:4px;">Jumlah dibayar: <strong>Rp{{ pembayaran.jumlah_bayar|floatformat:0 }}</strong></div>
+      {% if pembayaran.metode != 'tunai' and pembayaran.bukti_bayar %}
+        <a href="{{ pembayaran.bukti_bayar.url }}" target="_blank" rel="noopener" class="payment-info-mini-link" style="display:inline-block; margin-top:8px;">Lihat bukti bayar ›</a>
+      {% endif %}
+    </div>
+  {% else %}
+    <p style="color: var(--text-muted); margin-bottom:14px;">Belum ada pembayaran untuk pesanan ini.</p>
+    {% if pesanan.status == 'menunggu_pembayaran' %}
+      <a href="{% url 'pelanggan:upload_pembayaran' pesanan.id %}" class="btn btn-gold">Upload Bukti Pembayaran</a>
+    {% endif %}
   {% endif %}
 
-  {% if pesanan.status == 'menunggu_pembayaran' or pesanan.status == 'diproses' %}
-<form method="POST" action="{% url 'pelanggan:batalkan_pesanan' pesanan.id %}"
-      onsubmit="return confirm('Yakin mau membatalkan pesanan ini?');" style="display:inline-block; margin-top:16px;">
-  {% csrf_token %}
-  <button type="submit" class="btn btn-ghost" style="border-color:var(--danger); color:var(--danger);">
-    Batalkan Pesanan
-  </button>
-</form>
-{% endif %}
-
-  <a href="{% url 'pelanggan:riwayat_pesanan' %}" class="btn btn-ghost" style="margin-top:16px;">‹ Kembali ke Riwayat</a>
+  <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:22px;">
+    {% if pesanan.status == 'menunggu_pembayaran' or pesanan.status == 'diproses' %}
+    <form method="POST" action="{% url 'pelanggan:batalkan_pesanan' pesanan.id %}"
+          onsubmit="return confirm('Yakin mau membatalkan pesanan ini?');">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger-outline">Batalkan Pesanan</button>
+    </form>
+    {% endif %}
+    <a href="{% url 'pelanggan:riwayat_pesanan' %}" class="btn btn-ghost">‹ Kembali ke Riwayat</a>
+  </div>
 </div>
 {% endblock %}

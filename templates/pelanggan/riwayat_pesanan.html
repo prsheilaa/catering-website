@@ -59,11 +59,29 @@
     </div>
 
     <div class="order-card-meta">Jenis catering: <strong>{{ p.jenis_catering.nama }}</strong></div>
-    <div class="order-card-meta">
-      Metode pembayaran:
-      <strong>{% if p.pembayaran %}{{ p.pembayaran.get_metode_display }}{% else %}Belum dibayar{% endif %}</strong>
-    </div>
-    <div class="order-card-meta">Total pembayaran: <strong>Rp{{ p.total_harga|floatformat:0 }}</strong></div>
+    {% if p.pembayaran %}
+<div class="payment-info-mini">
+  <div class="payment-info-mini-method">
+    <span class="pill-tag">{{ p.pembayaran.get_metode_display }}</span>
+    {% if p.pembayaran.metode == 'transfer_bank' %}
+      <span>VA <span class="mono">{{ p.virtual_account_number }}</span> — {{ bank_name }}</span>
+    {% elif p.pembayaran.metode == 'e_wallet' %}
+      <span>{{ ewallet_provider }} <span class="mono">{{ ewallet_number }}</span></span>
+    {% elif p.pembayaran.metode == 'qris' %}
+      <span>{{ qris_merchant_name }}</span>
+    {% else %}
+      <span>Dibayar tunai di tempat</span>
+    {% endif %}
+  </div>
+  {% if p.pembayaran.metode != 'tunai' and p.pembayaran.bukti_bayar %}
+    <a href="{{ p.pembayaran.bukti_bayar.url }}" target="_blank" rel="noopener" class="payment-info-mini-link">Lihat bukti bayar ›</a>
+  {% endif %}
+</div>
+{% elif p.status == 'menunggu_pembayaran' %}
+<div class="payment-info-mini">
+  <div class="payment-info-mini-method"><span class="pill-tag">Belum dibayar</span></div>
+</div>
+{% endif %}
 
     <div class="order-card-products">
       <strong>Menu:</strong>

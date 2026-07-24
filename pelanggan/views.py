@@ -5,7 +5,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.core.paginator import Paginator
 
 from administrator.decorators import role_required
-from administrator.models import Menu, KategoriMenu, JenisCatering, Pesanan, Pembayaran, ItemPesanan
+from administrator.models import Menu, KategoriMenu, JenisCatering, Pesanan, Pembayaran, ItemPesanan, BANK_NAME, EWALLET_PROVIDER, EWALLET_NUMBER, EWALLET_ACCOUNT_NAME, QRIS_MERCHANT_NAME
 from .forms import RegistrasiPelangganForm, PembayaranForm
 
 PAKET_PORSI_CHOICES = [
@@ -249,7 +249,15 @@ def upload_pembayaran(request, pesanan_id):
     else:
         form = PembayaranForm(initial={'jumlah_bayar': pesanan.total_harga})
 
-    return render(request, 'pelanggan/upload_pembayaran.html', {'form': form, 'pesanan': pesanan})
+    return render(request, 'pelanggan/upload_pembayaran.html', {
+        'form': form,
+        'pesanan': pesanan,
+        'bank_name': BANK_NAME,
+        'ewallet_provider': EWALLET_PROVIDER,
+        'ewallet_number': EWALLET_NUMBER,
+        'ewallet_account_name': EWALLET_ACCOUNT_NAME,
+        'qris_merchant_name': QRIS_MERCHANT_NAME,
+    })
 
 
 # ==========================================================
@@ -270,6 +278,10 @@ def riwayat_pesanan(request):
         'page_obj': page_obj,
         'status_choices': Pesanan.StatusPesanan.choices,
         'status': status or '',
+        'bank_name': BANK_NAME,
+        'ewallet_provider': EWALLET_PROVIDER,
+        'ewallet_number': EWALLET_NUMBER,
+        'qris_merchant_name': QRIS_MERCHANT_NAME,
     })
 
 
@@ -279,10 +291,18 @@ def riwayat_pesanan(request):
 @role_required('pelanggan')
 def detail_pesanan(request, pesanan_id):
     pesanan = get_object_or_404(
-        Pesanan.objects.select_related('menu', 'jenis_catering'), pk=pesanan_id, pelanggan=request.user
+        Pesanan.objects.select_related('menu', 'jenis_catering').prefetch_related('item_list__menu'),
+        pk=pesanan_id, pelanggan=request.user
     )
     pembayaran = getattr(pesanan, 'pembayaran', None)
-    return render(request, 'pelanggan/detail_pesanan.html', {'pesanan': pesanan, 'pembayaran': pembayaran})
+    return render(request, 'pelanggan/detail_pesanan.html', {
+        'pesanan': pesanan,
+        'pembayaran': pembayaran,
+        'bank_name': BANK_NAME,
+        'ewallet_provider': EWALLET_PROVIDER,
+        'ewallet_number': EWALLET_NUMBER,
+        'qris_merchant_name': QRIS_MERCHANT_NAME,
+    })
 
 @role_required('pelanggan')
 def batalkan_pesanan(request, pesanan_id):

@@ -821,6 +821,15 @@ table.data tr:hover td { background: var(--paper-3); }
 }
 .order-card-status { flex-shrink: 0; }
 .order-card-status .badge { padding: 7px 15px; font-size: 12.5px; }
+.payment-info-mini {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  margin-top: 10px; padding: 10px 12px;
+  background: var(--paper-3); border-radius: var(--radius-sm);
+  font-size: 13px; color: var(--text-dark);
+}
+.payment-info-mini-method { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.payment-info-mini-link { font-size: 12.5px; font-weight: 700; color: var(--coral-rose); white-space: nowrap; }
+.payment-info-mini-link:hover { text-decoration: underline; }
 
 
 /* ===== Buat pesanan: selectable menu picker cards ===== */

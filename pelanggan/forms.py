@@ -49,3 +49,15 @@ class PembayaranForm(forms.ModelForm):
     class Meta:
         model = Pembayaran
         fields = ['metode', 'jumlah_bayar', 'bukti_bayar']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        metode = cleaned_data.get('metode')
+        bukti_bayar = cleaned_data.get('bukti_bayar')
+
+        if metode != Pembayaran.MetodePembayaran.TUNAI and not bukti_bayar:
+            self.add_error(
+                'bukti_bayar',
+                "Bukti pembayaran wajib diunggah untuk metode selain tunai."
+            )
+        return cleaned_data
