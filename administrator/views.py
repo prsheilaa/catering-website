@@ -191,16 +191,15 @@ def menu_list(request):
         'jenis_catering'
     ).order_by('-created_at')
 
-    q = request.GET.get('q')
+    q = request.GET.get('q', '').strip()
     kategori = request.GET.get('kategori')
     jenis = request.GET.get('jenis')
 
-    if q:
+    if q != '':
         menu = menu.filter(
             Q(nama_paket__icontains=q) |
-            Q(kategori__nama__icontains=q) |
-            Q(jenis_catering__nama__icontains=q)
-        )
+            Q(kategori__nama__icontains=q)
+    )
 
     if kategori:
         menu = menu.filter(kategori_id=kategori)
