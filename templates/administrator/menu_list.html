@@ -79,7 +79,7 @@ Administrator
         <input
         type="text"
         name="q"
-        value="{{ q }}"
+        value="{{ q|default:'' }}"
         placeholder="Cari menu..."
         class="form-control"
         style="max-width:260px;">
@@ -157,8 +157,6 @@ Administrator
 
                 <th>Kategori</th>
 
-                <th>Jenis</th>
-
                 <th>Harga</th>
 
                 <th>Status</th>
@@ -225,13 +223,7 @@ Administrator
                     {{ menu.kategori.nama }}
             
                 </td>
-            
-                <td>
-            
-                    {{ menu.jenis_catering.nama }}
-            
-                </td>
-            
+                       
                 <td>
             
                     Rp {{ menu.harga_per_porsi }}
@@ -281,7 +273,7 @@ Administrator
             
             <tr>
             
-                <td colspan="7" style="text-align:center;padding:40px;">
+                <td colspan="6" style="text-align:center;padding:40px;">
             
                     <img src="{% static 'images/empty-menu.svg' %}"
                          width="140">
