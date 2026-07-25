@@ -105,5 +105,5 @@ Membuatkan detail menu
 |     Peran     |    Username   |    Password    |
 |---------------|---------------|----------------|
 | Administrator | administrator | KacangHijau31* |
-|   Petugas     |    petugas    | kacanghijau31  |
+|   Petugas     |    petugas    | KacangHijau31  |
 |   Pelanggan   |   lisaprams   | KacangHijau31* |

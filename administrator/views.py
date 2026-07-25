@@ -5,8 +5,11 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.db.models import Sum
+from django.db.models.functions import ExtractWeekDay
 from django.http import HttpResponse
+from datetime import timedelta
 from django.utils import timezone
+from django.db.models import Count
 from openpyxl import Workbook
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
 from reportlab.lib import colors
@@ -25,18 +28,75 @@ User = get_user_model()
 # ==========================================================
 @role_required('administrator')
 def dashboard(request):
+    
+    grafik_pesanan = (
+        Pesanan.objects
+        .annotate(hari_ke=ExtractWeekDay('created_at'))
+        .values('hari_ke')
+        .annotate(jumlah=Count('id'))
+        .order_by('hari_ke')
+    )
+
+    grafik_data = []
+    nama_hari = {
+        1: "Minggu",
+        2: "Sen",
+        3: "Sel",
+        4: "Rab",
+        5: "Kam",
+        6: "Jum",
+        7: "Sab",
+    }
+
+
+    grafik_max = 1
+    for item in grafik_pesanan:
+        grafik_max = max(grafik_max, item['jumlah'])
+    
+    for item in grafik_pesanan:
+        grafik_data.append({
+            "hari": nama_hari[item['hari_ke']],
+            "jumlah": item['jumlah'],
+            "persentase": int(
+                item['jumlah'] / grafik_max * 100
+            )
+        })
     context = {
         'total_menu': Menu.objects.count(),
         'total_pesanan': Pesanan.objects.count(),
-        'pesanan_menunggu': Pesanan.objects.filter(status=Pesanan.StatusPesanan.MENUNGGU_PEMBAYARAN).count(),
-        'pesanan_diproses': Pesanan.objects.filter(status=Pesanan.StatusPesanan.DIPROSES).count(),
-        'pesanan_selesai': Pesanan.objects.filter(status=Pesanan.StatusPesanan.SELESAI).count(),
-        'total_pelanggan': User.objects.filter(role=User.Role.PELANGGAN).count(),
-        'pelanggan_pending': User.objects.filter(role=User.Role.PELANGGAN, is_approved=False).count(),
+
+        'pesanan_menunggu': Pesanan.objects.filter(
+            status=Pesanan.StatusPesanan.MENUNGGU_PEMBAYARAN
+        ).count(),
+
+        'pesanan_diproses': Pesanan.objects.filter(
+            status=Pesanan.StatusPesanan.DIPROSES
+        ).count(),
+
+        'pesanan_selesai': Pesanan.objects.filter(
+            status=Pesanan.StatusPesanan.SELESAI
+        ).count(),
+
+        'total_pelanggan': User.objects.filter(
+            role=User.Role.PELANGGAN
+        ).count(),
+
+        'pelanggan_pending': User.objects.filter(
+            role=User.Role.PELANGGAN,
+            is_approved=False
+        ).count(),
+
+        'grafik_pesanan': grafik_data,
+        'grafik_max': grafik_max,
     }
-    return render(request, 'administrator/dashboard.html', context)
 
 
+    return render(
+        request,
+        'administrator/dashboard.html',
+        context
+    )
+    
 # ==========================================================
 # KELOLA KATEGORI MENU
 # ==========================================================
