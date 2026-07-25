@@ -32,15 +32,7 @@
       <label>Cari menu</label>
       <input type="text" name="q" value="{{ q }}" placeholder="Cari nama paket menu...">
     </div>
-    <div class="field">
-      <label>Jenis catering</label>
-      <select name="jenis">
-        <option value="">Semua jenis</option>
-        {% for j in jenis_list %}
-        <option value="{{ j.id }}" {% if jenis_id == j.id|stringformat:"s" %}selected{% endif %}>{{ j.nama }}</option>
-        {% endfor %}
-      </select>
-    </div>
+    
     {% if kategori_id %}<input type="hidden" name="kategori" value="{{ kategori_id }}">{% endif %}
     <button type="submit" class="btn btn-primary">Terapkan</button>
     {% if q or jenis_id or kategori_id %}
