@@ -50,19 +50,73 @@
 
     <div>
 
-        <h1>Riwayat Pembayaran</h1>
+        <h1>📋 Riwayat Pembayaran</h1>
 
         <p>
-            Seluruh riwayat pembayaran pelanggan yang telah diproses.
+            Menampilkan seluruh transaksi pembayaran pelanggan yang telah diverifikasi oleh petugas.
         </p>
 
     </div>
 
-    {% if page_obj %}
-        <span class="badge selesai">
-            {{ page_obj.paginator.count }} Data
-        </span>
-    {% endif %}
+    <span class="badge selesai">
+
+        {{ page_obj.paginator.count }} Transaksi
+
+    </span>
+
+</div>
+
+<!-- CARD STATISTIK -->
+
+<div class="payment-summary">
+
+    <div class="summary-card">
+
+        <div class="summary-icon">
+            💳
+        </div>
+
+        <div>
+
+            <span>Total Pembayaran</span>
+
+            <h2>{{ page_obj.paginator.count }}</h2>
+
+        </div>
+
+    </div>
+
+    <div class="summary-card">
+
+        <div class="summary-icon success">
+            ✔
+        </div>
+
+        <div>
+
+            <span>Status</span>
+
+            <h2>Riwayat</h2>
+
+        </div>
+
+    </div>
+
+    <div class="summary-card">
+
+        <div class="summary-icon warning">
+            📑
+        </div>
+
+        <div>
+
+            <span>Menu</span>
+
+            <h2>Pembayaran</h2>
+
+        </div>
+
+    </div>
 
 </div>
 
@@ -70,12 +124,12 @@
 
     <div class="panel-head">
 
-        <h3>Daftar Riwayat Pembayaran</h3>
+        <h3>📑 Daftar Transaksi Pembayaran</h3>
 
         <a href="{% url 'petugas:pembayaran_pending' %}"
            class="btn btn-ghost">
 
-            Kembali
+            ← Kembali
 
         </a>
 
@@ -183,7 +237,7 @@
                         <a href="{% url 'petugas:detail_pembayaran' pembayaran.id %}"
                            class="btn btn-primary">
 
-                            Detail
+                            🔍 Detail
 
                         </a>
 

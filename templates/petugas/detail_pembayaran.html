@@ -50,10 +50,10 @@
 
     <div>
 
-        <h1>Detail Pembayaran</h1>
+        <h1>📄 Detail Pembayaran</h1>
 
         <p>
-            Informasi lengkap pembayaran pelanggan.
+            Informasi lengkap pembayaran pelanggan beserta bukti transfer.
         </p>
 
     </div>
@@ -91,66 +91,61 @@
 
     <div class="panel">
 
-        <div class="panel-head">
+    <div class="panel-head">
+        <h3>📋 Informasi Pembayaran</h3>
+    </div>
 
-            <h3>Informasi Pembayaran</h3>
+    <div class="detail-grid">
 
+        <div class="detail-item">
+            <span class="detail-label">Kode Pesanan</span>
+            <strong>{{ pembayaran.pesanan.kode_pesanan }}</strong>
         </div>
 
-        <div class="field">
-            <label>Kode Pesanan</label>
-            <input type="text"
-                   readonly
-                   value="{{ pembayaran.pesanan.kode_pesanan }}">
+        <div class="detail-item">
+            <span class="detail-label">Nama Pelanggan</span>
+            <strong>{{ pembayaran.pesanan.pelanggan.username }}</strong>
         </div>
 
-        <div class="field">
-            <label>Nama Pelanggan</label>
-            <input type="text"
-                   readonly
-                   value="{{ pembayaran.pesanan.pelanggan.username }}">
+        <div class="detail-item">
+            <span class="detail-label">Metode Pembayaran</span>
+            <strong>{{ pembayaran.get_metode_display }}</strong>
         </div>
 
-        <div class="field">
-            <label>Metode Pembayaran</label>
-            <input type="text"
-                   readonly
-                   value="{{ pembayaran.get_metode_display }}">
+        <div class="detail-item">
+            <span class="detail-label">Jumlah Pembayaran</span>
+            <strong class="payment-price">
+                Rp {{ pembayaran.jumlah_bayar }}
+            </strong>
         </div>
 
-        <div class="field">
-            <label>Jumlah Pembayaran</label>
-            <input type="text"
-                   readonly
-                   value="Rp {{ pembayaran.jumlah_bayar }}">
-        </div>
-
-        <div class="field">
-            <label>Status Verifikasi</label>
-            <input type="text"
-                   readonly
-                   value="{{ pembayaran.get_status_verifikasi_display }}">
-        </div>
-
-        <div class="field">
-            <label>Catatan Verifikasi</label>
-
-            <textarea rows="4" readonly>
-
-{{ pembayaran.catatan_verifikasi|default:"Belum ada catatan." }}
-
-            </textarea>
-
+        <div class="detail-item">
+            <span class="detail-label">Status Verifikasi</span>
+            <strong>{{ pembayaran.get_status_verifikasi_display }}</strong>
         </div>
 
     </div>
+
+    <div style="margin-top:20px;">
+
+        <span class="detail-label">
+            Catatan Verifikasi
+        </span>
+
+        <div class="detail-note">
+            {{ pembayaran.catatan_verifikasi|default:"Belum ada catatan." }}
+        </div>
+
+    </div>
+
+</div>
 
 
     <div class="panel">
 
         <div class="panel-head">
 
-            <h3>Bukti Pembayaran</h3>
+            <h3>📷 Bukti Pembayaran</h3>
 
         </div>
 
@@ -189,7 +184,7 @@
         <a href="{% url 'petugas:riwayat_pembayaran' %}"
            class="btn btn-ghost">
 
-            Kembali
+            ← Kembali ke Riwayat
 
         </a>
 
