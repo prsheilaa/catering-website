@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.contrib.humanize.templatetags.humanize import intcomma
 from django.db.models import Q
 from django.db.models import Sum
 from django.db.models.functions import ExtractWeekDay
@@ -361,17 +362,43 @@ def akun_delete(request, pk):
 @role_required('administrator')
 def transaksi_list(request):
     status_filter = request.GET.get('status', '')
-    pesanan = Pesanan.objects.select_related('pelanggan', 'menu', 'pembayaran').order_by('-created_at')
-    if status_filter:
-        pesanan = pesanan.filter(status=status_filter)
-    paginator = Paginator(pesanan, 15)
-    page_obj = paginator.get_page(request.GET.get('page'))
-    return render(request, 'administrator/transaksi_list.html', {
-        'page_obj': page_obj,
-        'status_filter': status_filter,
-        'status_choices': Pesanan.StatusPesanan.choices,
-    })
+    q = request.GET.get('q', '')
 
+    transaksi = Pesanan.objects.select_related(
+        'pelanggan',
+        'menu',
+        'pembayaran'
+    ).order_by('-created_at')
+
+    if q:
+        transaksi = transaksi.filter(
+            Q(kode_pesanan__icontains=q) |
+            Q(pelanggan__username__icontains=q)
+        )
+
+    if status_filter:
+        transaksi = transaksi.filter(status=status_filter)
+
+    return render(
+        request,
+        'administrator/transaksi_list.html',
+        {
+            'transaksi': transaksi,
+            'status_filter': status_filter,
+
+            'total_menunggu': transaksi.filter(
+                status=Pesanan.StatusPesanan.MENUNGGU_PEMBAYARAN
+            ).count(),
+
+            'total_diproses': transaksi.filter(
+                status=Pesanan.StatusPesanan.DIPROSES
+            ).count(),
+
+            'total_selesai': transaksi.filter(
+                status=Pesanan.StatusPesanan.SELESAI
+            ).count(),
+        }
+    )
 
 @role_required('administrator')
 def transaksi_detail(request, pk):
@@ -628,3 +655,23 @@ def laporan_download_excel(request):
     workbook.save(response)
 
     return response
+
+# ==========================================================
+# DAFTAR PEMBAYARAN
+# ==========================================================
+@role_required('administrator')
+def pembayaran_list(request):
+
+    pembayaran = Pembayaran.objects.select_related(
+        'pesanan',
+        'pesanan__pelanggan'
+    ).order_by('-tanggal_bayar')
+
+
+    return render(
+        request,
+        'administrator/pembayaran_list.html',
+        {
+            'pembayaran_list': pembayaran
+        }
+    )
