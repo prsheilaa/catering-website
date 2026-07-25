@@ -2,6 +2,14 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator
 
+# TAMBAHKAN blok ini (baris 6-14), letakkan setelah 3 baris import paling atas:
+BANK_NAME = "Bank Nusantara Sejahtera"
+BANK_VA_PREFIX = "8807"
+EWALLET_PROVIDER = "DANA"
+EWALLET_NUMBER = "0812-3456-7890"
+EWALLET_ACCOUNT_NAME = "Meja Nusantara Catering"
+QRIS_MERCHANT_NAME = "MEJA NUSANTARA CATERING"
+
 
 # ==========================================================
 # USER & ROLE
@@ -49,6 +57,12 @@ class User(AbstractUser):
             self.role = self.Role.ADMINISTRATOR
             self.is_approved = True
         super().save(*args, **kwargs)
+
+    # Di dalam class Pesanan, cari method save() (baris ±189), TAMBAHKAN setelahnya:
+    @property
+    def virtual_account_number(self):
+        """Nomor Virtual Account tujuan transfer bank untuk pesanan ini."""
+        return f"{BANK_VA_PREFIX}{self.id:010d}"
 
 
 # ==========================================================
@@ -180,6 +194,26 @@ class Pesanan(models.Model):
             self.total_harga = self.menu.harga_per_porsi * self.jumlah_porsi
         super().save(*args, **kwargs)
 
+class ItemPesanan(models.Model):
+    """
+    Detail menu di dalam satu pesanan (satu pesanan bisa berisi banyak menu).
+    """
+    pesanan = models.ForeignKey(Pesanan, on_delete=models.CASCADE, related_name='item_list')
+    menu = models.ForeignKey(Menu, on_delete=models.PROTECT, related_name='item_pesanan_list')
+    jumlah_porsi = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    subtotal = models.DecimalField(max_digits=14, decimal_places=2)
+
+    class Meta:
+        verbose_name_plural = "Item Pesanan"
+
+    def save(self, *args, **kwargs):
+        if not self.subtotal:
+            self.subtotal = self.menu.harga_per_porsi * self.jumlah_porsi
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.menu.nama_paket} x{self.jumlah_porsi}"
+
 
 # ==========================================================
 # PEMBAYARAN
@@ -205,7 +239,10 @@ class Pembayaran(models.Model):
 
     metode = models.CharField(max_length=20, choices=MetodePembayaran.choices)
     jumlah_bayar = models.DecimalField(max_digits=14, decimal_places=2)
+    # Baris ke-±240an, di dalam class Pembayaran. UBAH dari:
     bukti_bayar = models.ImageField(upload_to='bukti_pembayaran/')
+# MENJADI (tambahkan blank=True, null=True):
+    bukti_bayar = models.ImageField(upload_to='bukti_pembayaran/', blank=True, null=True)
 
     status_verifikasi = models.CharField(
         max_length=20, choices=StatusVerifikasi.choices, default=StatusVerifikasi.MENUNGGU

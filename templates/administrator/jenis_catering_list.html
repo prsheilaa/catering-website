@@ -1,75 +1,82 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Jenis Catering | Meja Nusantara{% endblock %}
-
-{% block brand_sub %}
-Administrator
-{% endblock %}
-
-{% block topbar_role %}
-Administrator
-{% endblock %}
+{% block title %}Jenis Catering - Meja Nusantara{% endblock %}
+{% block brand_sub %}Panel Admin{% endblock %}
+{% block topbar_title %}Jenis Catering{% endblock %}
+{% block topbar_role %}Administrator{% endblock %}
 
 {% block sidebar_nav %}
 
 <div class="nav-group">
+    <div class="nav-label">Ringkasan</div>
 
-<a href="{% url 'administrator:dashboard' %}" class="nav-link">
-Dashboard
-</a>
+    <a class="nav-link" href="{% url 'administrator:dashboard' %}">
+        Dashboard
+    </a>
+</div>
 
-<a href="{% url 'administrator:kategori_list' %}" class="nav-link">
-Kategori
-</a>
+<div class="nav-group">
 
-<a href="{% url 'administrator:jenis_catering_list' %}" class="nav-link active">
-Jenis Catering
-</a>
+    <div class="nav-label">Katalog</div>
 
-<a href="{% url 'administrator:menu_list' %}" class="nav-link">
-Menu Catering
-</a>
+    <a class="nav-link" href="{% url 'administrator:menu_list' %}">
+        Menu
+    </a>
 
-<a href="{% url 'administrator:akun_list' %}" class="nav-link">
-Kelola Akun
-</a>
+    <a class="nav-link" href="{% url 'administrator:kategori_list' %}">
+        Kategori
+    </a>
 
-<a href="{% url 'administrator:transaksi_list' %}" class="nav-link">
-Transaksi
-</a>
+    <a class="nav-link active" href="{% url 'administrator:jenis_catering_list' %}">
+        Jenis Catering
+    </a>
 
-<a href="{% url 'administrator:laporan' %}" class="nav-link">
-Laporan
-</a>
+</div>
+
+<div class="nav-group">
+
+    <div class="nav-label">Operasional</div>
+
+    <a class="nav-link" href="{% url 'administrator:akun_list' %}">
+        Kelola Akun
+    </a>
+
+    <a class="nav-link" href="{% url 'administrator:transaksi_list' %}">
+        Transaksi
+    </a>
+
+    <a class="nav-link" href="{% url 'administrator:laporan' %}">
+        Laporan
+    </a>
 
 </div>
 
 {% endblock %}
 
 {% block content %}
+<div class="page-head">
 
-<div class="panel">
+    <div>
 
-<div class="section-header">
+        <h1>Jenis Catering</h1>
 
-<div>
+        <p>Kelola seluruh jenis layanan catering.</p>
 
-<h2>Jenis Catering</h2>
+    </div>
 
-<p style="color:#7b6f61">
-Kelola seluruh jenis layanan catering.
-</p>
+    <div class="date-pill">
 
-</div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
 
-<a
-href="{% url 'administrator:jenis_catering_tambah' %}"
-class="btn btn-primary">
+        {% now "l, j F Y" %}
 
-+ Tambah Jenis
-
-</a>
+    </div>
 
 </div>
 

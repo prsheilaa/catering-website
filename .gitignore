@@ -2,24 +2,21 @@
 __pycache__/
 *.py[cod]
 
-# Database
+# SQLite
 db.sqlite3
 
 # Virtual Environment
 env/
 venv/
 
-# VSCode
-.vscode/
-
-# Static
-staticfiles/
-
 # Media
 media/
 
-# macOS
-.DS_Store
+# VS Code
+.vscode/
 
-# Windows
-Thumbs.db
+# IDE
+.idea/
+
+# Environment
+.env

@@ -20,6 +20,7 @@ def dashboard(request):
         'pelanggan_pending': User.objects.filter(role=User.Role.PELANGGAN, is_approved=False).count(),
         'pembayaran_menunggu': Pembayaran.objects.filter(status_verifikasi=Pembayaran.StatusVerifikasi.MENUNGGU).count(),
         'pesanan_diproses': Pesanan.objects.filter(status=Pesanan.StatusPesanan.DIPROSES).count(),
+        'pesanan_terbaru': Pesanan.objects.select_related('pelanggan', 'menu').order_by('-created_at')[:6],
     }
     return render(request, 'petugas/dashboard.html', context)
 

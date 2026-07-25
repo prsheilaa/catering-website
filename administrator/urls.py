@@ -35,8 +35,24 @@ urlpatterns = [
     path('transaksi/', views.transaksi_list, name='transaksi_list'),
     path('transaksi/<int:pk>/', views.transaksi_detail, name='transaksi_detail'),
 
+    # Update status
+    path('transaksi/<int:pk>/update-status/',views.transaksi_update_status,name='transaksi_update_status'),
+
+    # Hapus transaksi
+    path('transaksi/<int:pk>/hapus/',views.transaksi_delete,name='transaksi_hapus'),
+
+    # Verifikasi pembayaran
+    path('pembayaran/<int:pk>/verifikasi/',views.verifikasi_pembayaran,name='verifikasi_pembayaran'),
+
     # Laporan
     path('laporan/', views.laporan, name='laporan'),
     path('laporan/download/pdf/', views.laporan_download_pdf, name='laporan_pdf'),
     path('laporan/download/excel/', views.laporan_download_excel, name='laporan_excel'),
+
+    #Riwayat Pesanan
+    path("riwayat-pesanan/",views.riwayat_pesanan,name="riwayat_pesanan",),
+
+    #Menu Pelanggan
+    path("menu/<int:pk>/",views.menu_detail,name="menu_detail",),
+    
 ]

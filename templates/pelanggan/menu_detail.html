@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ menu.nama_paket }} — Meja Nusantara{% endblock %}
+{% block brand_sub %}Pelanggan{% endblock %}
+{% block topbar_title %}Detail Menu{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-group">
+  <div class="nav-label">Ringkasan</div>
+  <a class="nav-link" href="{% url 'pelanggan:dashboard' %}">Dashboard</a>
+</div>
+<div class="nav-group">
+  <div class="nav-label">Katering</div>
+  <a class="nav-link active" href="{% url 'pelanggan:menu_list' %}">Daftar Menu</a>
+  <a class="nav-link" href="{% url 'pelanggan:buat_pesanan' %}">Buat Pesanan</a>
+  <a class="nav-link" href="{% url 'pelanggan:riwayat_pesanan' %}">Riwayat Pesanan</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+  <a href="{% url 'pelanggan:menu_list' %}">Daftar Menu</a> ›
+  <a href="{% url 'pelanggan:menu_list' %}?kategori={{ menu.kategori_id }}">{{ menu.kategori.nama }}</a> ›
+  {{ menu.nama_paket }}
+</div>
+
+<div class="panel">
+  <div class="menu-detail-grid">
+    <div>
+      {% if menu.foto %}
+        <img class="menu-detail-image" src="{{ menu.foto.url }}" alt="{{ menu.nama_paket }}">
+      {% else %}
+        <div class="menu-detail-image-empty">Belum ada foto untuk menu ini</div>
+      {% endif %}
+    </div>
+
+    <div>
+      <div class="menu-detail-cat">{{ menu.kategori.nama }} · {{ menu.jenis_catering.nama }}</div>
+      <h1 style="margin-bottom: 6px;">{{ menu.nama_paket }}</h1>
+
+      {% if menu.status_stok == 'tersedia' %}
+        <span class="badge selesai">Tersedia</span>
+      {% else %}
+        <span class="badge kosong">Stok kosong</span>
+      {% endif %}
+
+      <div class="menu-detail-price">
+        Rp{{ menu.harga_per_porsi|floatformat:0 }} <span>/ porsi</span>
+      </div>
+
+      <p style="color: var(--text-dark); line-height: 1.7;">
+        {{ menu.deskripsi|default:"Belum ada deskripsi untuk menu ini." }}
+      </p>
+
+      <div class="spec-list">
+        <div class="spec-row">
+          <span class="spec-row-label">Kategori</span>
+          <span class="spec-row-value">{{ menu.kategori.nama }}</span>
+        </div>
+        <div class="spec-row">
+          <span class="spec-row-label">Jenis catering</span>
+          <span class="spec-row-value">{{ menu.jenis_catering.nama }}</span>
+        </div>
+        <div class="spec-row">
+          <span class="spec-row-label">Harga per porsi</span>
+          <span class="spec-row-value">Rp{{ menu.harga_per_porsi|floatformat:0 }}</span>
+        </div>
+        <div class="spec-row">
+          <span class="spec-row-label">Status stok</span>
+          <span class="spec-row-value">{{ menu.get_status_stok_display }}</span>
+        </div>
+      </div>
+
+      {% if menu.status_stok == 'tersedia' %}
+        <a href="{% url 'pelanggan:buat_pesanan' %}?menu={{ menu.id }}" class="btn btn-gold btn-block">Pesan menu ini</a>
+      {% else %}
+        <button class="btn btn-ghost btn-block" disabled style="opacity:0.6; cursor:not-allowed;">Stok sedang kosong</button>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% if menu_terkait %}
+<div class="panel">
+  <div class="panel-head">
+    <h3 style="margin:0;">Menu lainnya di kategori {{ menu.kategori.nama }}</h3>
+    <a href="{% url 'pelanggan:menu_list' %}?kategori={{ menu.kategori_id }}" class="btn btn-ghost">Lihat semua</a>
+  </div>
+  <div class="reco-grid">
+    {% for m in menu_terkait %}
+    <a href="{% url 'pelanggan:menu_detail' m.id %}" class="reco-card">
+      {% if m.foto %}
+        <img class="reco-card-img" src="{{ m.foto.url }}" alt="{{ m.nama_paket }}">
+      {% else %}
+        <div class="reco-card-img-empty">Belum ada foto</div>
+      {% endif %}
+      <div class="reco-card-body">
+        <div class="reco-card-cat">{{ m.kategori.nama }}</div>
+        <div class="reco-card-name">{{ m.nama_paket }}</div>
+        <div class="reco-card-price">Rp{{ m.harga_per_porsi|floatformat:0 }} / porsi</div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,370 @@
+{% extends "base.html" %}
+
+{% block title %}Detail Transaksi{% endblock %}
+{% block topbar_title %}Detail Transaksi{% endblock %}
+{% block topbar_role %}Administrator{% endblock %}
+
+{% block content %}
+
+<div class="page-head">
+    <div>
+        <h1>Detail Transaksi</h1>
+        <p>Informasi lengkap pesanan pelanggan.</p>
+    </div>
+
+    <a href="{% url 'administrator:transaksi_list' %}" class="btn btn-ghost">
+        ← Kembali
+    </a>
+</div>
+
+
+<!-- ================= DATA PESANAN ================= -->
+
+<div class="panel">
+
+    <div class="panel-head">
+        <h3>Data Pesanan</h3>
+    </div>
+
+    <table class="data">
+
+        <tbody>
+
+        <tr>
+            <th>Kode Pesanan</th>
+            <td class="mono">{{ pesanan.kode_pesanan }}</td>
+        </tr>
+
+        <tr>
+            <th>Pelanggan</th>
+            <td>
+                <div class="cell-person">
+                    <div class="avatar avatar-sm">
+                        {{ pesanan.pelanggan.username|slice:":2"|upper }}
+                    </div>
+
+                    {{ pesanan.pelanggan.username }}
+                </div>
+            </td>
+        </tr>
+
+        <tr>
+            <th>Nama Pemesan</th>
+            <td>{{ pesanan.nama_pemesan }}</td>
+        </tr>
+
+        <tr>
+            <th>Menu</th>
+            <td>
+                <span class="pill-tag">
+                    {{ pesanan.menu.nama_paket }}
+                </span>
+            </td>
+        </tr>
+
+        <tr>
+            <th>Jenis Catering</th>
+            <td>{{ pesanan.jenis_catering.nama }}</td>
+        </tr>
+
+        <tr>
+            <th>Jumlah Porsi</th>
+            <td>{{ pesanan.jumlah_porsi }}</td>
+        </tr>
+
+        <tr>
+            <th>Total Harga</th>
+            <td>
+                <strong>
+                    Rp {{ pesanan.total_harga }}
+                </strong>
+            </td>
+        </tr>
+
+        <tr>
+            <th>Alamat</th>
+            <td>{{ pesanan.alamat }}</td>
+        </tr>
+
+        <tr>
+            <th>No Telepon</th>
+            <td>{{ pesanan.no_telepon }}</td>
+        </tr>
+
+        <tr>
+            <th>Waktu Acara</th>
+            <td>{{ pesanan.waktu_acara|date:"d M Y H:i" }}</td>
+        </tr>
+
+        <tr>
+            <th>Catatan</th>
+            <td>
+                {{ pesanan.catatan_tambahan|default:"-" }}
+            </td>
+        </tr>
+
+        <tr>
+
+            <th>Status</th>
+
+            <td>
+
+                {% if pesanan.status == 'menunggu_pembayaran' %}
+                    <span class="badge menunggu">
+                        Menunggu Pembayaran
+                    </span>
+
+                {% elif pesanan.status == 'diproses' %}
+                    <span class="badge diproses">
+                        Diproses
+                    </span>
+
+                {% elif pesanan.status == 'selesai' %}
+                    <span class="badge selesai">
+                        Selesai
+                    </span>
+
+                {% elif pesanan.status == 'dibatalkan' %}
+                    <span class="badge batal">
+                        Dibatalkan
+                    </span>
+
+                {% else %}
+
+                    {{ pesanan.get_status_display }}
+
+                {% endif %}
+
+            </td>
+
+        </tr>
+
+        </tbody>
+
+    </table>
+
+</div>
+
+
+<br>
+
+
+<!-- ================= UPDATE STATUS ================= -->
+
+<div class="panel">
+
+    <div class="panel-head">
+
+        <h3>Update Status Pesanan</h3>
+
+    </div>
+
+    <form method="POST"
+          action="{% url 'administrator:transaksi_update_status' pesanan.id %}">
+
+        {% csrf_token %}
+
+        <div style="display:flex;gap:15px;align-items:center;flex-wrap:wrap;">
+
+            <select
+                    name="status"
+                    class="form-control"
+                    style="max-width:350px;">
+
+                {% for value,label in status_choices %}
+
+                    <option
+                            value="{{ value }}"
+                            {% if value == pesanan.status %}
+                            selected
+                            {% endif %}>
+
+                        {{ label }}
+
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+            <button class="btn btn-primary">
+
+                Simpan Status
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<br>
+
+
+<!-- ================= PEMBAYARAN ================= -->
+
+{% if pembayaran %}
+
+<div class="panel">
+
+    <div class="panel-head">
+
+        <h3>Data Pembayaran</h3>
+
+    </div>
+
+    <table class="data">
+
+        <tbody>
+
+        <tr>
+
+            <th>Metode</th>
+
+            <td>
+
+                {{ pembayaran.get_metode_display }}
+
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <th>Jumlah Bayar</th>
+
+            <td>
+
+                <strong>
+
+                    Rp {{ pembayaran.jumlah_bayar }}
+
+                </strong>
+
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <th>Status Verifikasi</th>
+
+            <td>
+
+                {% if pembayaran.status_verifikasi == "menunggu" %}
+
+                    <span class="badge menunggu">
+
+                        Menunggu
+
+                    </span>
+
+                {% elif pembayaran.status_verifikasi == "diterima" %}
+
+                    <span class="badge selesai">
+
+                        Diterima
+
+                    </span>
+
+                {% elif pembayaran.status_verifikasi == "ditolak" %}
+
+                    <span class="badge batal">
+
+                        Ditolak
+
+                    </span>
+
+                {% else %}
+
+                    {{ pembayaran.get_status_verifikasi_display }}
+
+                {% endif %}
+
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <th>Bukti Pembayaran</th>
+
+            <td>
+
+                <a href="{{ pembayaran.bukti_bayar.url }}" target="_blank">
+
+                    <img
+                            src="{{ pembayaran.bukti_bayar.url }}"
+                            style="width:280px;border-radius:12px;">
+
+                </a>
+
+            </td>
+
+        </tr>
+
+        </tbody>
+
+    </table>
+
+    <br>
+
+    <form method="POST"
+          action="{% url 'administrator:verifikasi_pembayaran' pembayaran.id %}">
+
+        {% csrf_token %}
+
+        <div style="display:flex;gap:15px;flex-wrap:wrap;align-items:center;">
+
+            <select
+                    class="form-control"
+                    name="status"
+                    style="max-width:300px;">
+
+                {% for value,label in status_verifikasi %}
+
+                    <option value="{{ value }}">
+
+                        {{ label }}
+
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+            <button class="btn btn-success">
+
+                Verifikasi Pembayaran
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% else %}
+
+<div class="panel">
+
+    <div class="panel-head">
+
+        <h3>Pembayaran</h3>
+
+    </div>
+
+    <p style="color:var(--text-muted);">
+
+        Pelanggan belum mengunggah bukti pembayaran.
+
+    </p>
+
+</div>
+
+{% endif %}
+
+{% endblock %}

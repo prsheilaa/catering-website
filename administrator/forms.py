@@ -24,7 +24,7 @@ class MenuForm(forms.ModelForm):
     class Meta:
         model = Menu
         fields = [
-            'kategori', 'jenis_catering', 'nama_paket', 'deskripsi',
+            'kategori', 'nama_paket', 'deskripsi',
             'harga_per_porsi', 'foto', 'status_stok',
         ]
         widgets = {

@@ -45,28 +45,19 @@ class RegistrasiPelangganForm(UserCreationForm):
             user.save()
         return user
 
-
-class PemesananForm(forms.ModelForm):
-    class Meta:
-        model = Pesanan
-        fields = [
-            'menu', 'jenis_catering', 'nama_pemesan', 'alamat', 'no_telepon',
-            'waktu_acara', 'jumlah_porsi', 'catatan_tambahan',
-        ]
-        widgets = {
-            'alamat': forms.Textarea(attrs={'rows': 2}),
-            'catatan_tambahan': forms.Textarea(attrs={'rows': 2}),
-            'waktu_acara': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # hanya tampilkan menu yang stoknya tersedia
-        from administrator.models import Menu
-        self.fields['menu'].queryset = Menu.objects.filter(status_stok=Menu.StatusStok.TERSEDIA)
-
-
 class PembayaranForm(forms.ModelForm):
     class Meta:
         model = Pembayaran
         fields = ['metode', 'jumlah_bayar', 'bukti_bayar']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        metode = cleaned_data.get('metode')
+        bukti_bayar = cleaned_data.get('bukti_bayar')
+
+        if metode != Pembayaran.MetodePembayaran.TUNAI and not bukti_bayar:
+            self.add_error(
+                'bukti_bayar',
+                "Bukti pembayaran wajib diunggah untuk metode selain tunai."
+            )
+        return cleaned_data

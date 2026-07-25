@@ -10,92 +10,201 @@
 <link rel="stylesheet" href="{% static 'css/main.css' %}">
 <style>
   body { margin: 0; }
-  .login-shell { display: flex; min-height: 100vh; }
 
-  .login-hero {
-    flex: 1.1;
-    background: var(--ink);
-    color: var(--paper);
-    padding: 56px;
+  .login-page {
+    min-height: 100vh;
     display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    align-items: center;
+    justify-content: center;
     position: relative;
     overflow: hidden;
+    padding: 56px 24px;
+    background: var(--paper);
   }
-  .login-hero::after {
+  .login-page::before {
     content: '';
-    position: absolute; right: -80px; top: -80px;
-    width: 260px; height: 260px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(198,149,47,0.18), transparent 70%);
+    position: absolute; top: -180px; left: -160px;
+    width: 520px; height: 520px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(185,62,36,0.16), transparent 70%);
   }
-  .hero-brand { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; }
-  .hero-brand span { color: var(--gold); }
+  .login-page::after {
+    content: '';
+    position: absolute; bottom: -200px; right: -160px;
+    width: 560px; height: 560px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(201,154,46,0.18), transparent 70%);
+  }
+
+  .login-shell {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 72px;
+    max-width: 1180px;
+    width: 100%;
+  }
+
+  /* ===== Left: brand / pitch ===== */
+  .login-hero { flex: 1; min-width: 0; }
+  .hero-brand {
+    display: flex; align-items: center; gap: 12px;
+    font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600;
+    color: var(--ink); margin-bottom: 36px;
+  }
+  .hero-brand-mark {
+    width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--pandan-light), var(--pandan));
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 18px -8px rgba(185,62,36,0.55);
+  }
+  .hero-brand-mark svg { width: 20px; height: 20px; color: #fff; }
+  .hero-brand span { color: var(--pandan); }
 
   .hero-headline {
     font-family: 'Fraunces', serif;
-    font-size: 42px;
+    font-size: 46px;
     font-weight: 600;
-    line-height: 1.15;
-    max-width: 480px;
-    margin: 0;
+    line-height: 1.16;
+    color: var(--ink);
+    max-width: 520px;
+    margin: 0 0 20px;
   }
-  .hero-headline em { color: var(--gold); font-style: normal; }
+  .hero-headline em { color: var(--pandan); font-style: normal; }
 
-  .menu-strip {
-    display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px;
-  }
-  .menu-chip {
-    border: 1px solid rgba(246,241,231,0.25);
-    padding: 8px 14px; border-radius: 100px;
-    font-size: 13px; color: rgba(246,241,231,0.85);
+  .hero-sub {
+    font-size: 16px; line-height: 1.7; color: var(--text-muted);
+    max-width: 460px; margin-bottom: 36px;
   }
 
-  .hero-foot { font-size: 13px; color: rgba(246,241,231,0.55); }
+  .hero-features { display: flex; gap: 14px; flex-wrap: wrap; }
+  .hero-feature {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--paper-2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 18px;
+    box-shadow: var(--shadow-card);
+    font-size: 14px; font-weight: 600; color: var(--ink-soft);
+  }
+  .hero-feature svg { width: 19px; height: 19px; color: var(--pandan); flex-shrink: 0; }
 
-  .login-panel {
-    flex: 1;
+  /* ===== Right: floating login card ===== */
+  .login-panel { flex: 0 0 420px; }
+  .login-card {
+    background: var(--paper-2);
+    border-radius: 26px;
+    box-shadow: 0 30px 60px -30px rgba(36,26,16,0.35), 0 1px 2px rgba(36,26,16,0.05);
+    padding: 40px 36px;
+  }
+  .login-card h1 { font-size: 27px; margin-bottom: 6px; }
+  .login-card .sub { color: var(--text-muted); font-size: 14px; margin-bottom: 28px; }
+
+  .field-icon { position: relative; }
+  .field-icon svg {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    width: 18px; height: 18px; color: var(--text-muted); pointer-events: none;
+  }
+  .field-icon input { padding-left: 42px; }
+
+  .password-field input { padding-right: 42px; }
+  .password-toggle {
+    position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+    width: 34px; height: 34px;
     display: flex; align-items: center; justify-content: center;
-    padding: 40px;
+    background: none; border: none; padding: 0; margin: 0;
+    cursor: pointer; color: var(--text-muted); line-height: 0;
   }
-  .login-card { width: 100%; max-width: 380px; }
-  .login-card .ticket-body { padding: 32px 30px; }
+  .password-toggle:hover { color: var(--ink); }
+  .password-toggle svg {
+    position: static; transform: none;
+    width: 18px; height: 18px; pointer-events: auto;
+  }
 
-  .login-card h1 { font-size: 26px; margin-bottom: 4px; }
-  .login-card .sub { color: var(--text-muted); font-size: 14px; margin-bottom: 26px; }
+  .field-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .field-head label { margin-bottom: 0; }
+  .field-head a { font-size: 12.5px; font-weight: 600; color: var(--pandan); }
 
-  .login-foot { margin-top: 20px; font-size: 14px; text-align: center; color: var(--text-muted); }
+  .remember-row {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13.5px; color: var(--text-muted);
+    margin: -4px 0 22px;
+  }
+  .remember-row input { width: 15px; height: 15px; accent-color: var(--pandan); }
 
-  @media (max-width: 860px) {
-    .login-shell { flex-direction: column; }
-    .login-hero { padding: 36px; }
-    .hero-headline { font-size: 30px; }
+  .btn-gradient {
+    background: linear-gradient(135deg, var(--pandan-light), var(--pandan));
+    color: #fff; border: none;
+    box-shadow: 0 14px 28px -12px rgba(185,62,36,0.55);
+  }
+  .btn-gradient:hover { filter: brightness(1.04); }
+  .btn-gradient svg { width: 16px; height: 16px; }
+
+  .divider {
+    display: flex; align-items: center; gap: 14px;
+    margin: 26px 0; color: var(--text-muted); font-size: 12.5px;
+  }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .social-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .social-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 11px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--paper-2); font-size: 14px; font-weight: 600; color: var(--text-dark);
+    cursor: pointer;
+  }
+  .social-btn:hover { background: var(--paper-3); }
+  .social-btn svg, .social-btn img { width: 18px; height: 18px; }
+
+  .login-foot { margin-top: 26px; font-size: 14px; text-align: center; color: var(--text-muted); }
+
+  @media (max-width: 980px) {
+    .login-shell { flex-direction: column; gap: 44px; }
+    .login-hero { text-align: center; }
+    .hero-brand, .hero-features { justify-content: center; }
+    .hero-headline, .hero-sub { max-width: none; }
+    .login-panel { flex-basis: auto; width: 100%; max-width: 420px; }
+  }
+  @media (max-width: 480px) {
+    .hero-headline { font-size: 34px; }
+    .login-card { padding: 32px 24px; }
   }
 </style>
 </head>
 <body>
 
-<div class="login-shell">
-  <div class="login-hero">
-    <div>
-      <div class="hero-brand">Meja <span>Nusantara</span></div>
-      <h1 class="hero-headline">Satu meja,<br><em>empat rasa dunia.</em></h1>
-      <div class="menu-strip">
-        <span class="menu-chip">Nusantara</span>
-        <span class="menu-chip">Korea</span>
-        <span class="menu-chip">Thailand</span>
-        <span class="menu-chip">Chinese</span>
+<div class="login-page">
+  <div class="login-shell">
+
+    <div class="login-hero">
+      <div class="hero-brand">
+        <span class="hero-brand-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2v7a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V2M8 13v9M18 2v20M18 2a4 4 0 0 0-4 4v3a2 2 0 0 0 2 2h2"></path>
+          </svg>
+        </span>
+        Meja <span>Nusantara</span>
+      </div>
+
+      <h1 class="hero-headline">Satu meja, <em>empat rasa dunia</em>.</h1>
+      <p class="hero-sub">Pesan katering untuk acara Anda — prasmanan, nasi box, hingga snack box, dari Nusantara sampai Korea, Thailand, dan China.</p>
+
+      <div class="hero-features">
+        <div class="hero-feature">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          Lacak pesanan real-time
+        </div>
+        <div class="hero-feature">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          Beragam menu katering
+        </div>
       </div>
     </div>
-    <div class="hero-foot">Pesan katering untuk acara Anda — prasmanan, nasi box, hingga snack box.</div>
-  </div>
 
-  <div class="login-panel">
-    <div class="ticket login-card">
-      <div class="ticket-perf"></div>
-      <div class="ticket-body">
-        <h1>Masuk akun</h1>
-        <div class="sub">Kelola atau pesan katering Anda di sini.</div>
+    <div class="login-panel">
+      <div class="login-card">
+        <h1>Selamat datang kembali</h1>
+        <div class="sub">Masukkan detail akun Anda untuk masuk.</div>
 
         {% if messages %}
           {% for message in messages %}
@@ -107,14 +216,23 @@
 
         <form method="post">
           {% csrf_token %}
+
           <div class="field">
             <label for="id_username">Username</label>
-            <input type="text" name="username" id="id_username" placeholder="Masukkan username" required autofocus>
+            <div class="field-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              <input type="text" name="username" id="id_username" placeholder="Masukkan username" required autofocus>
+            </div>
           </div>
+
           <div class="field">
-            <label for="id_password">Kata sandi</label>
-            <div class="password-field">
-              <input type="password" name="password" id="id_password" placeholder="Masukkan kata sandi" required>
+            <div class="field-head">
+              <label for="id_password">Kata sandi</label>
+              <a href="#">Lupa kata sandi?</a>
+            </div>
+            <div class="field-icon password-field">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+              <input type="password" name="password" id="id_password" placeholder="Masukkan kata sandi" required style="padding-left:42px;">
               <button type="button" class="password-toggle" data-toggle-for="id_password" aria-label="Tampilkan kata sandi">
                 <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"></path>
@@ -127,16 +245,36 @@
               </button>
             </div>
           </div>
-          <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; margin-top: 6px;">
-            Masuk
+
+          <label class="remember-row">
+            <input type="checkbox" name="remember">
+            Ingat saya selama 30 hari
+          </label>
+
+          <button type="submit" class="btn btn-gradient btn-block">
+            Masuk ke Meja Nusantara
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
           </button>
         </form>
+
+        <div class="divider">atau lanjutkan dengan</div>
+        <div class="social-row">
+          <button type="button" class="social-btn">
+            <svg viewBox="0 0 24 24"><path fill="#EA4335" d="M12 10.2v3.9h5.5c-.24 1.4-1.7 4.1-5.5 4.1-3.3 0-6-2.7-6-6.2s2.7-6.2 6-6.2c1.9 0 3.1.8 3.9 1.5l2.6-2.5C16.9 3 14.7 2 12 2 6.9 2 2.8 6.1 2.8 11.2S6.9 20.4 12 20.4c6.9 0 9.4-4.8 9.4-7.3 0-.5-.05-.9-.13-1.3H12z"></path></svg>
+            Google
+          </button>
+          <button type="button" class="social-btn">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 2c.1 1.1-.35 2.2-1 3-.7.8-1.8 1.5-2.9 1.4-.15-1.1.4-2.2 1-2.9.7-.8 1.9-1.4 2.9-1.5zM20.3 17c-.5 1.2-1.1 2.3-2 3.3-.8.9-1.7 1.9-3 1.9-1.2 0-1.6-.8-3.1-.8s-1.9.8-3.1.75c-1.3-.05-2.3-1.1-3.1-2-1.6-1.9-2.9-5.3-1.2-7.7.8-1.2 2.2-1.9 3.6-1.95 1.2-.05 2.3.8 3.1.8.7 0 2.1-1 3.6-.85.6 0 2.3.25 3.4 1.85-.1.05-2 1.2-2 3.5.05 2.75 2.4 3.7 2.8 3.85z"></path></svg>
+            Apple
+          </button>
+        </div>
 
         <div class="login-foot">
           Belum punya akun? <a href="{% url 'pelanggan:register' %}">Daftar sebagai pelanggan</a>
         </div>
       </div>
     </div>
+
   </div>
 </div>
 
