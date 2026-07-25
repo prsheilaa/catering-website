@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator
 
-# TAMBAHKAN blok ini (baris 6-14), letakkan setelah 3 baris import paling atas:
 BANK_NAME = "Bank Nusantara Sejahtera"
 BANK_VA_PREFIX = "8807"
 EWALLET_PROVIDER = "DANA"
@@ -26,7 +25,6 @@ class User(AbstractUser):
 
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.PELANGGAN)
 
-    # Untuk alur "petugas menyetujui registrasi pelanggan"
     is_approved = models.BooleanField(
         default=False,
         help_text="Khusus role pelanggan. True jika registrasi sudah disetujui petugas."
@@ -37,7 +35,6 @@ class User(AbstractUser):
     )
     approved_at = models.DateTimeField(null=True, blank=True)
 
-    # Data tambahan untuk profil pelanggan
     no_telepon = models.CharField(max_length=20, blank=True)
     alamat = models.TextField(blank=True)
 
@@ -52,13 +49,11 @@ class User(AbstractUser):
         return "Aktif" if self.is_active else "Nonaktif"
 
     def save(self, *args, **kwargs):
-        # Superuser (dibuat via createsuperuser) otomatis jadi administrator & approved
         if self.is_superuser:
             self.role = self.Role.ADMINISTRATOR
             self.is_approved = True
         super().save(*args, **kwargs)
 
-    # Di dalam class Pesanan, cari method save() (baris ±189), TAMBAHKAN setelahnya:
     @property
     def virtual_account_number(self):
         """Nomor Virtual Account tujuan transfer bank untuk pesanan ini."""
@@ -239,9 +234,6 @@ class Pembayaran(models.Model):
 
     metode = models.CharField(max_length=20, choices=MetodePembayaran.choices)
     jumlah_bayar = models.DecimalField(max_digits=14, decimal_places=2)
-    # Baris ke-±240an, di dalam class Pembayaran. UBAH dari:
-    bukti_bayar = models.ImageField(upload_to='bukti_pembayaran/')
-# MENJADI (tambahkan blank=True, null=True):
     bukti_bayar = models.ImageField(upload_to='bukti_pembayaran/', blank=True, null=True)
 
     status_verifikasi = models.CharField(

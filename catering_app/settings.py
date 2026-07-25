@@ -126,3 +126,6 @@ LOGIN_REDIRECT_URL = 'pelanggan:menu_list'
 LOGOUT_REDIRECT_URL = 'pelanggan:login'
 
 STATICFILES_DIRS = [BASE_DIR / 'static'] 
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"

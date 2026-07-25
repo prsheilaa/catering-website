@@ -188,7 +188,6 @@ def menu_list(request):
 
     menu = Menu.objects.select_related(
         'kategori',
-        'jenis_catering'
     ).order_by('-created_at')
 
     q = request.GET.get('q', '').strip()
