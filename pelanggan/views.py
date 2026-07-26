@@ -96,16 +96,13 @@ def dashboard(request):
 def menu_list(request):
     menu_qs = Menu.objects.filter(
         status_stok=Menu.StatusStok.TERSEDIA
-    ).select_related('kategori', 'jenis_catering').order_by('kategori__nama', 'nama_paket')
+    ).select_related('kategori').order_by('kategori__nama', 'nama_paket')
 
     kategori_id = request.GET.get('kategori', '')
-    jenis_id = request.GET.get('jenis', '')
     q = request.GET.get('q', '').strip()
 
     if kategori_id:
         menu_qs = menu_qs.filter(kategori_id=kategori_id)
-    if jenis_id:
-        menu_qs = menu_qs.filter(jenis_catering_id=jenis_id)
     if q:
         menu_qs = menu_qs.filter(nama_paket__icontains=q)
 
@@ -115,9 +112,7 @@ def menu_list(request):
     return render(request, 'pelanggan/menu_list.html', {
         'page_obj': page_obj,
         'kategori_list': KategoriMenu.objects.filter(is_active=True),
-        'jenis_list': JenisCatering.objects.filter(is_active=True),
         'kategori_id': kategori_id,
-        'jenis_id': jenis_id,
         'q': q,
     })
 
@@ -125,7 +120,7 @@ def menu_list(request):
 @role_required('pelanggan')
 def menu_detail(request, menu_id):
     menu = get_object_or_404(
-        Menu.objects.select_related('kategori', 'jenis_catering'), pk=menu_id
+        Menu.objects.select_related('kategori'), pk=menu_id
     )
     menu_terkait = Menu.objects.filter(
         kategori=menu.kategori, status_stok=Menu.StatusStok.TERSEDIA

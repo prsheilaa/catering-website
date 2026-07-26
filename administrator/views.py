@@ -3,14 +3,10 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.contrib.humanize.templatetags.humanize import intcomma
 from django.db.models import Q
 from django.db.models import Sum
-from django.db.models.functions import ExtractWeekDay
 from django.http import HttpResponse
-from datetime import timedelta
 from django.utils import timezone
-from django.db.models import Count
 from openpyxl import Workbook
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
 from reportlab.lib import colors
@@ -18,7 +14,10 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import Paragraph
 
 from .decorators import role_required
-from .models import Menu, KategoriMenu, JenisCatering, Pesanan, Pembayaran
+from .models import (
+    Menu, KategoriMenu, JenisCatering, Pesanan, Pembayaran,
+    BANK_NAME, EWALLET_PROVIDER, EWALLET_NUMBER, QRIS_MERCHANT_NAME,
+)
 from .forms import MenuForm, KategoriMenuForm, JenisCateringForm, AkunForm
 
 User = get_user_model()
@@ -29,75 +28,18 @@ User = get_user_model()
 # ==========================================================
 @role_required('administrator')
 def dashboard(request):
-    
-    grafik_pesanan = (
-        Pesanan.objects
-        .annotate(hari_ke=ExtractWeekDay('created_at'))
-        .values('hari_ke')
-        .annotate(jumlah=Count('id'))
-        .order_by('hari_ke')
-    )
-
-    grafik_data = []
-    nama_hari = {
-        1: "Minggu",
-        2: "Sen",
-        3: "Sel",
-        4: "Rab",
-        5: "Kam",
-        6: "Jum",
-        7: "Sab",
-    }
-
-
-    grafik_max = 1
-    for item in grafik_pesanan:
-        grafik_max = max(grafik_max, item['jumlah'])
-    
-    for item in grafik_pesanan:
-        grafik_data.append({
-            "hari": nama_hari[item['hari_ke']],
-            "jumlah": item['jumlah'],
-            "persentase": int(
-                item['jumlah'] / grafik_max * 100
-            )
-        })
     context = {
         'total_menu': Menu.objects.count(),
         'total_pesanan': Pesanan.objects.count(),
-
-        'pesanan_menunggu': Pesanan.objects.filter(
-            status=Pesanan.StatusPesanan.MENUNGGU_PEMBAYARAN
-        ).count(),
-
-        'pesanan_diproses': Pesanan.objects.filter(
-            status=Pesanan.StatusPesanan.DIPROSES
-        ).count(),
-
-        'pesanan_selesai': Pesanan.objects.filter(
-            status=Pesanan.StatusPesanan.SELESAI
-        ).count(),
-
-        'total_pelanggan': User.objects.filter(
-            role=User.Role.PELANGGAN
-        ).count(),
-
-        'pelanggan_pending': User.objects.filter(
-            role=User.Role.PELANGGAN,
-            is_approved=False
-        ).count(),
-
-        'grafik_pesanan': grafik_data,
-        'grafik_max': grafik_max,
+        'pesanan_menunggu': Pesanan.objects.filter(status=Pesanan.StatusPesanan.MENUNGGU_PEMBAYARAN).count(),
+        'pesanan_diproses': Pesanan.objects.filter(status=Pesanan.StatusPesanan.DIPROSES).count(),
+        'pesanan_selesai': Pesanan.objects.filter(status=Pesanan.StatusPesanan.SELESAI).count(),
+        'total_pelanggan': User.objects.filter(role=User.Role.PELANGGAN).count(),
+        'pelanggan_pending': User.objects.filter(role=User.Role.PELANGGAN, is_approved=False).count(),
     }
+    return render(request, 'administrator/dashboard.html', context)
 
 
-    return render(
-        request,
-        'administrator/dashboard.html',
-        context
-    )
-    
 # ==========================================================
 # KELOLA KATEGORI MENU
 # ==========================================================
@@ -253,7 +195,6 @@ def menu_list(request):
 
     q = request.GET.get('q', '').strip()
     kategori = request.GET.get('kategori')
-    jenis = request.GET.get('jenis')
 
     if q != '':
         menu = menu.filter(
@@ -264,9 +205,6 @@ def menu_list(request):
     if kategori:
         menu = menu.filter(kategori_id=kategori)
 
-    if jenis:
-        menu = menu.filter(jenis_catering_id=jenis)
-
     paginator = Paginator(menu, 10)
     page_obj = paginator.get_page(request.GET.get('page'))
 
@@ -274,9 +212,7 @@ def menu_list(request):
         'page_obj': page_obj,
         'q': q,
         'kategori': kategori,
-        'jenis': jenis,
         'kategori_list': KategoriMenu.objects.all(),
-        'jenis_list': JenisCatering.objects.all(),
     })
 
 
@@ -362,43 +298,34 @@ def akun_delete(request, pk):
 @role_required('administrator')
 def transaksi_list(request):
     status_filter = request.GET.get('status', '')
-    q = request.GET.get('q', '')
+    q = request.GET.get('q', '').strip()
 
-    transaksi = Pesanan.objects.select_related(
-        'pelanggan',
-        'menu',
-        'pembayaran'
-    ).order_by('-created_at')
-
-    if q:
-        transaksi = transaksi.filter(
-            Q(kode_pesanan__icontains=q) |
-            Q(pelanggan__username__icontains=q)
-        )
+    pesanan = Pesanan.objects.select_related('pelanggan', 'menu', 'pembayaran').order_by('-created_at')
 
     if status_filter:
-        transaksi = transaksi.filter(status=status_filter)
+        pesanan = pesanan.filter(status=status_filter)
+    if q:
+        pesanan = pesanan.filter(
+            Q(kode_pesanan__icontains=q) | Q(pelanggan__username__icontains=q)
+        )
 
-    return render(
-        request,
-        'administrator/transaksi_list.html',
-        {
-            'transaksi': transaksi,
-            'status_filter': status_filter,
+    semua_pesanan = Pesanan.objects.all()
 
-            'total_menunggu': transaksi.filter(
-                status=Pesanan.StatusPesanan.MENUNGGU_PEMBAYARAN
-            ).count(),
+    paginator = Paginator(pesanan, 15)
+    page_obj = paginator.get_page(request.GET.get('page'))
 
-            'total_diproses': transaksi.filter(
-                status=Pesanan.StatusPesanan.DIPROSES
-            ).count(),
+    return render(request, 'administrator/transaksi_list.html', {
+        'page_obj': page_obj,
+        'transaksi': page_obj,
+        'q': q,
+        'status_filter': status_filter,
+        'status_choices': Pesanan.StatusPesanan.choices,
+        'total_transaksi': semua_pesanan.count(),
+        'total_menunggu': semua_pesanan.filter(status=Pesanan.StatusPesanan.MENUNGGU_PEMBAYARAN).count(),
+        'total_diproses': semua_pesanan.filter(status=Pesanan.StatusPesanan.DIPROSES).count(),
+        'total_selesai': semua_pesanan.filter(status=Pesanan.StatusPesanan.SELESAI).count(),
+    })
 
-            'total_selesai': transaksi.filter(
-                status=Pesanan.StatusPesanan.SELESAI
-            ).count(),
-        }
-    )
 
 @role_required('administrator')
 def transaksi_detail(request, pk):
@@ -424,17 +351,22 @@ def transaksi_detail(request, pk):
             'pembayaran': pembayaran,
             'status_choices': Pesanan.StatusPesanan.choices,
             'status_verifikasi': Pembayaran.StatusVerifikasi.choices,
+            'bank_name': BANK_NAME,
+            'ewallet_provider': EWALLET_PROVIDER,
+            'ewallet_number': EWALLET_NUMBER,
+            'qris_merchant_name': QRIS_MERCHANT_NAME,
         }
     )
 
 @role_required('administrator')
 def transaksi_delete(request, pk):
     pesanan = get_object_or_404(Pesanan, pk=pk)
-    pesanan.delete()
-    messages.success(
-        request,
-        "Transaksi berhasil dihapus."
-    )
+    if request.method == 'POST':
+        pesanan.delete()
+        messages.success(
+            request,
+            "Transaksi berhasil dihapus."
+        )
 
     return redirect('administrator:transaksi_list')
 
@@ -655,23 +587,3 @@ def laporan_download_excel(request):
     workbook.save(response)
 
     return response
-
-# ==========================================================
-# DAFTAR PEMBAYARAN
-# ==========================================================
-@role_required('administrator')
-def pembayaran_list(request):
-
-    pembayaran = Pembayaran.objects.select_related(
-        'pesanan',
-        'pesanan__pelanggan'
-    ).order_by('-tanggal_bayar')
-
-
-    return render(
-        request,
-        'administrator/pembayaran_list.html',
-        {
-            'pembayaran_list': pembayaran
-        }
-    )

@@ -35,7 +35,7 @@
     </div>
 
     <div>
-      <div class="menu-detail-cat">{{ menu.kategori.nama }} · {{ menu.jenis_catering.nama }}</div>
+      <div class="menu-detail-cat">{{ menu.kategori.nama }}</div>
       <h1 style="margin-bottom: 6px;">{{ menu.nama_paket }}</h1>
 
       {% if menu.status_stok == 'tersedia' %}
@@ -56,10 +56,6 @@
         <div class="spec-row">
           <span class="spec-row-label">Kategori</span>
           <span class="spec-row-value">{{ menu.kategori.nama }}</span>
-        </div>
-        <div class="spec-row">
-          <span class="spec-row-label">Jenis catering</span>
-          <span class="spec-row-value">{{ menu.jenis_catering.nama }}</span>
         </div>
         <div class="spec-row">
           <span class="spec-row-label">Harga per porsi</span>

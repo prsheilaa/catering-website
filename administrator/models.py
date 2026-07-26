@@ -107,7 +107,10 @@ class Menu(models.Model):
         KOSONG = 'kosong', 'Kosong'
 
     kategori = models.ForeignKey(KategoriMenu, on_delete=models.PROTECT, related_name='menu_list')
-    jenis_catering = models.ForeignKey(JenisCatering, on_delete=models.PROTECT, related_name='menu_list')
+    jenis_catering = models.ForeignKey(
+        JenisCatering, on_delete=models.SET_NULL, related_name='menu_list',
+        null=True, blank=True,
+    )
 
     nama_paket = models.CharField(max_length=150)
     deskripsi = models.TextField(blank=True)
