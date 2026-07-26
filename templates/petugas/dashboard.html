@@ -29,25 +29,37 @@
 </p>
 
 <div class="stat-grid" style="grid-template-columns: repeat(3, 1fr);">
-  <div class="ticket stat-card">
-    <div class="ticket-perf"></div>
+  <div class="ticket stat-card stat-card-color stat-color-2">
     <div class="ticket-body">
+      <div class="stat-card-top">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+      </div>
       <div class="stat-label">Registrasi menunggu persetujuan</div>
-      <div class="stat-value accent">{{ pelanggan_pending }}</div>
+      <div class="stat-value">{{ pelanggan_pending }}</div>
     </div>
   </div>
 
-  <div class="ticket stat-card">
-    <div class="ticket-perf"></div>
+  <div class="ticket stat-card stat-card-color stat-color-3">
     <div class="ticket-body">
+      <div class="stat-card-top">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>
+        </div>
+      </div>
       <div class="stat-label">Pembayaran menunggu verifikasi</div>
-      <div class="stat-value accent">{{ pembayaran_menunggu }}</div>
+      <div class="stat-value">{{ pembayaran_menunggu }}</div>
     </div>
   </div>
 
-  <div class="ticket stat-card">
-    <div class="ticket-perf"></div>
+  <div class="ticket stat-card stat-card-color stat-color-4">
     <div class="ticket-body">
+      <div class="stat-card-top">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>
+        </div>
+      </div>
       <div class="stat-label">Pesanan sedang diproses</div>
       <div class="stat-value">{{ pesanan_diproses }}</div>
     </div>
@@ -86,11 +98,50 @@
 
 <div class="panel" style="margin-top: 20px;">
   <div class="panel-head">
-    <h3 style="margin:0;">Pesanan sedang diproses</h3>
+    <h3 style="margin:0;">Order terbaru</h3>
     <a href="{% url 'petugas:pesanan_diproses' %}" class="btn btn-ghost">Lihat semua</a>
   </div>
-  <p style="color: var(--text-muted); font-size: 14px; margin: 0;">
-    Ada {{ pesanan_diproses }} pesanan yang sedang berjalan menuju hari acara. Tandai selesai setelah acara berlangsung.
-  </p>
+
+  {% if pesanan_terbaru %}
+  <table class="data">
+    <thead>
+      <tr>
+        <th>Kode pesanan</th>
+        <th>Pelanggan</th>
+        <th>Menu</th>
+        <th>Status</th>
+        <th>Waktu acara</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for pesanan in pesanan_terbaru %}
+      <tr>
+        <td class="mono">{{ pesanan.kode_pesanan }}</td>
+        <td>
+          <div class="cell-person">
+            <div class="avatar avatar-sm">{{ pesanan.pelanggan.username|slice:":2"|upper }}</div>
+            {{ pesanan.pelanggan.username }}
+          </div>
+        </td>
+        <td><span class="pill-tag">{{ pesanan.menu.nama_paket }}</span></td>
+        <td>
+          {% if pesanan.status == 'menunggu_pembayaran' %}
+            <span class="badge menunggu">Menunggu bayar</span>
+          {% elif pesanan.status == 'diproses' %}
+            <span class="badge diproses">Diproses</span>
+          {% elif pesanan.status == 'selesai' %}
+            <span class="badge selesai">Selesai</span>
+          {% else %}
+            <span class="badge batal">Dibatalkan</span>
+          {% endif %}
+        </td>
+        <td>{{ pesanan.waktu_acara|date:"d M Y, H:i" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color: var(--text-muted); margin: 0;">Belum ada order.</p>
+  {% endif %}
 </div>
 {% endblock %}

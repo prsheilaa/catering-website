@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block title %}Riwayat Pembayaran — Meja Nusantara{% endblock %}
+{% block brand_sub %}Petugas{% endblock %}
+{% block topbar_role %}Operator{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-group">
+    <div class="nav-label">Ringkasan</div>
+    <a class="nav-link" href="{% url 'petugas:dashboard' %}">
+        Dashboard
+    </a>
+</div>
+
+<div class="nav-group">
+    <div class="nav-label">Registrasi</div>
+    <a class="nav-link"
+       href="{% url 'petugas:pelanggan_pending' %}">
+        Approval Pelanggan
+    </a>
+</div>
+
+<div class="nav-group">
+    <div class="nav-label">Pembayaran</div>
+
+    <a class="nav-link"
+       href="{% url 'petugas:pembayaran_pending' %}">
+        Verifikasi Pembayaran
+    </a>
+
+    <a class="nav-link active"
+       href="{% url 'petugas:riwayat_pembayaran' %}">
+        Riwayat Pembayaran
+    </a>
+</div>
+
+<div class="nav-group">
+    <div class="nav-label">Pesanan</div>
+
+    <a class="nav-link"
+       href="{% url 'petugas:pesanan_diproses' %}">
+        Pesanan Diproses
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-head">
+
+    <div>
+
+        <h1>Riwayat Pembayaran</h1>
+
+        <p>
+            Seluruh riwayat pembayaran pelanggan yang telah diproses.
+        </p>
+
+    </div>
+
+    {% if page_obj %}
+        <span class="badge selesai">
+            {{ page_obj.paginator.count }} Data
+        </span>
+    {% endif %}
+
+</div>
+
+<div class="panel">
+
+    <div class="panel-head">
+
+        <h3>Daftar Riwayat Pembayaran</h3>
+
+        <a href="{% url 'petugas:pembayaran_pending' %}"
+           class="btn btn-ghost">
+
+            Kembali
+
+        </a>
+
+    </div>
+
+    <div style="overflow-x:auto;">
+
+        <table class="data">
+
+            <thead>
+
+                <tr>
+
+                    <th>Kode</th>
+                    <th>Pelanggan</th>
+                    <th>Metode</th>
+                    <th>Jumlah</th>
+                    <th>Status</th>
+                    <th>Detail</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% for pembayaran in page_obj %}
+
+                <tr>
+
+                    <td class="mono">
+
+                        {{ pembayaran.pesanan.kode_pesanan }}
+
+                    </td>
+
+                    <td>
+
+                        <div class="cell-person">
+
+                            <div class="avatar avatar-sm">
+
+                                {{ pembayaran.pesanan.pelanggan.username|slice:":1"|upper }}
+
+                            </div>
+
+                            <strong>
+
+                                {{ pembayaran.pesanan.pelanggan.username }}
+
+                            </strong>
+
+                        </div>
+
+                    </td>
+
+                    <td>
+
+                        {{ pembayaran.get_metode_display }}
+
+                    </td>
+
+                    <td>
+
+                        <strong>
+
+                            Rp {{ pembayaran.jumlah_bayar }}
+
+                        </strong>
+
+                    </td>
+
+                    <td>
+
+                        {% if pembayaran.status_verifikasi == 'valid' %}
+
+                            <span class="badge selesai">
+
+                                Valid
+
+                            </span>
+
+                        {% elif pembayaran.status_verifikasi == 'tidak_valid' %}
+
+                            <span class="badge batal">
+
+                                Tidak Valid
+
+                            </span>
+
+                        {% else %}
+
+                            <span class="badge menunggu">
+
+                                Menunggu
+
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+                    <td>
+
+                        <a href="{% url 'petugas:detail_pembayaran' pembayaran.id %}"
+                           class="btn btn-primary">
+
+                            Detail
+
+                        </a>
+
+                    </td>
+
+                </tr>
+
+            {% empty %}
+
+                <tr>
+
+                    <td colspan="6"
+                        style="text-align:center;padding:40px;">
+
+                        <h3>Belum Ada Riwayat</h3>
+
+                        <p style="color:var(--text-muted);">
+
+                            Riwayat pembayaran akan muncul di sini.
+
+                        </p>
+
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}

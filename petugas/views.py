@@ -20,6 +20,7 @@ def dashboard(request):
         'pelanggan_pending': User.objects.filter(role=User.Role.PELANGGAN, is_approved=False).count(),
         'pembayaran_menunggu': Pembayaran.objects.filter(status_verifikasi=Pembayaran.StatusVerifikasi.MENUNGGU).count(),
         'pesanan_diproses': Pesanan.objects.filter(status=Pesanan.StatusPesanan.DIPROSES).count(),
+        'pesanan_terbaru': Pesanan.objects.select_related('pelanggan', 'menu').order_by('-created_at')[:6],
     }
     return render(request, 'petugas/dashboard.html', context)
 
@@ -120,3 +121,45 @@ def selesaikan_pesanan(request, pk):
     pesanan.save(update_fields=['status'])
     messages.success(request, f"Pesanan {pesanan.kode_pesanan} ditandai selesai.")
     return redirect('petugas:pesanan_diproses')
+
+# ==========================================================
+# RIWAYAT PEMBAYARAN
+# ==========================================================
+@role_required('petugas')
+def riwayat_pembayaran(request):
+    pembayaran = Pembayaran.objects.select_related(
+        'pesanan',
+        'pesanan__pelanggan'
+    ).order_by('-created_at')
+
+    paginator = Paginator(pembayaran, 15)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    return render(
+        request,
+        'petugas/riwayat_pembayaran.html',
+        {
+            'page_obj': page_obj
+        }
+    )
+
+
+# ==========================================================
+# DETAIL PEMBAYARAN
+# ==========================================================
+@role_required('petugas')
+def detail_pembayaran(request, pk):
+
+    pembayaran = get_object_or_404(
+        Pembayaran,
+        pk=pk
+    )
+
+    return render(
+        request,
+        'petugas/detail_pembayaran.html',
+        {
+            'pembayaran': pembayaran,
+            'pesanan': pembayaran.pesanan,
+        }
+    )

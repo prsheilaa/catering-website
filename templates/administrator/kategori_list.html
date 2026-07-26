@@ -1,18 +1,69 @@
 {% extends 'base.html' %}
 {% load static %}
 
+<<<<<<< HEAD
 {% block title %}Data Menu | Meja Nusantara{% endblock %}
 {% block brand_sub %}Administrator{% endblock %}
 {% block topbar_role %}Administrator{% endblock %}
 {% block topbar_title %}Menu{% endblock %}
+=======
+{% block title %}Kategori Menu - Meja Nusantara{% endblock %}
+{% block brand_sub %}Panel Admin{% endblock %}
+{% block topbar_title %}Kategori{% endblock %}
+{% block topbar_role %}Administrator{% endblock %}
+>>>>>>> main
 
 {% block sidebar_nav %}
 <div class="nav-group">
+<<<<<<< HEAD
   <div class="nav-label">Ringkasan</div>
   <a class="nav-link" href="{% url 'administrator:dashboard' %}">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
     Dashboard
   </a>
+=======
+    <div class="nav-label">Ringkasan</div>
+
+    <a href="{% url 'administrator:dashboard' %}" class="nav-link">
+        Dashboard
+    </a>
+</div>
+
+<div class="nav-group">
+
+    <div class="nav-label">Katalog</div>
+
+    <a href="{% url 'administrator:menu_list' %}" class="nav-link">
+        Menu
+    </a>
+
+    <a href="{% url 'administrator:kategori_list' %}" class="nav-link active">
+        Kategori
+    </a>
+
+    <a href="{% url 'administrator:jenis_catering_list' %}" class="nav-link">
+        Jenis Catering
+    </a>
+
+</div>
+
+<div class="nav-group">
+
+    <div class="nav-label">Operasional</div>
+
+    <a href="{% url 'administrator:akun_list' %}" class="nav-link">
+        Kelola Akun
+    </a>
+
+    <a href="{% url 'administrator:transaksi_list' %}" class="nav-link">
+        Transaksi
+    </a>
+
+    <a href="{% url 'administrator:laporan' %}" class="nav-link">
+        Laporan
+    </a>
+
+>>>>>>> main
 </div>
 
 <div class="nav-group">

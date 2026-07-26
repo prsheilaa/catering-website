@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}Pesanan Diproses — Meja Nusantara{% endblock %}
+{% block brand_sub %}Petugas{% endblock %}
+{% block topbar_role %}Operator{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-group">
+    <div class="nav-label">Ringkasan</div>
+    <a class="nav-link" href="{% url 'petugas:dashboard' %}">
+        Dashboard
+    </a>
+</div>
+
+<div class="nav-group">
+    <div class="nav-label">Registrasi</div>
+    <a class="nav-link"
+       href="{% url 'petugas:pelanggan_pending' %}">
+        Approval Pelanggan
+    </a>
+</div>
+
+<div class="nav-group">
+    <div class="nav-label">Pembayaran</div>
+
+    <a class="nav-link"
+       href="{% url 'petugas:pembayaran_pending' %}">
+        Verifikasi Pembayaran
+    </a>
+
+    <a class="nav-link"
+       href="{% url 'petugas:riwayat_pembayaran' %}">
+        Riwayat Pembayaran
+    </a>
+</div>
+
+<div class="nav-group">
+    <div class="nav-label">Pesanan</div>
+
+    <a class="nav-link active"
+       href="{% url 'petugas:pesanan_diproses' %}">
+        Pesanan Diproses
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-head">
+
+    <div>
+
+        <h1>Pesanan Diproses</h1>
+
+        <p>
+            Daftar pesanan yang sedang dipersiapkan hingga acara selesai.
+        </p>
+
+    </div>
+
+    {% if page_obj %}
+    <span class="badge diproses">
+        {{ page_obj.paginator.count }} Pesanan
+    </span>
+    {% endif %}
+
+</div>
+
+<div class="panel">
+
+    <div class="panel-head">
+
+        <h3>Daftar Pesanan</h3>
+
+    </div>
+
+    <div style="overflow-x:auto;">
+
+        <table class="data">
+
+            <thead>
+
+                <tr>
+
+                    <th>Kode</th>
+                    <th>Pelanggan</th>
+                    <th>Paket</th>
+                    <th>Waktu Acara</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% for pesanan in page_obj %}
+
+                <tr>
+
+                    <td class="mono">
+
+                        {{ pesanan.kode_pesanan }}
+
+                    </td>
+
+                    <td>
+
+                        <div class="cell-person">
+
+                            <div class="avatar avatar-sm">
+
+                                {{ pesanan.pelanggan.username|slice:":1"|upper }}
+
+                            </div>
+
+                            <strong>
+
+                                {{ pesanan.pelanggan.username }}
+
+                            </strong>
+
+                        </div>
+
+                    </td>
+
+                    <td>
+
+                        {{ pesanan.menu.nama_paket }}
+
+                    </td>
+
+                    <td>
+
+                        {{ pesanan.waktu_acara }}
+
+                    </td>
+
+                    <td>
+
+                        <span class="badge diproses">
+
+                            {{ pesanan.get_status_display }}
+
+                        </span>
+
+                    </td>
+
+                    <td>
+
+                        <a href="{% url 'petugas:selesaikan_pesanan' pesanan.id %}"
+                           class="btn btn-primary">
+
+                            Selesaikan
+
+                        </a>
+
+                    </td>
+
+                </tr>
+
+            {% empty %}
+
+                <tr>
+
+                    <td colspan="6"
+                        style="text-align:center;padding:45px;">
+
+                        <h3 style="margin-bottom:8px;">
+
+                            Belum Ada Pesanan
+
+                        </h3>
+
+                        <p style="color:var(--text-muted);margin:0;">
+
+                            Tidak ada pesanan yang sedang diproses.
+
+                        </p>
+
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% if page_obj.has_other_pages %}
+
+<div class="panel">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+
+        <div>
+
+            Halaman
+
+            <strong>{{ page_obj.number }}</strong>
+
+            dari
+
+            <strong>{{ page_obj.paginator.num_pages }}</strong>
+
+        </div>
+
+        <div style="display:flex;gap:10px;">
+
+            {% if page_obj.has_previous %}
+
+            <a href="?page={{ page_obj.previous_page_number }}"
+               class="btn btn-ghost">
+
+                ← Sebelumnya
+
+            </a>
+
+            {% endif %}
+
+            {% if page_obj.has_next %}
+
+            <a href="?page={{ page_obj.next_page_number }}"
+               class="btn btn-primary">
+
+                Berikutnya →
+
+            </a>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endif %}
+
+{% endblock %}

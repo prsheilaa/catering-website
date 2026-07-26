@@ -1,12 +1,28 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
+from django.db.models import Sum
+from django.http import HttpResponse
+from django.utils import timezone
+from datetime import timedelta
+from openpyxl import Workbook
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import Paragraph
 
 from .decorators import role_required
+
 from .models import Menu, KategoriMenu, JenisCatering, Pesanan, Pembayaran, Pengaturan
 from .forms import (MenuForm, KategoriMenuForm, JenisCateringForm, AkunForm, PengaturanForm)
+from .models import (
+    Menu, KategoriMenu, JenisCatering, Pesanan, Pembayaran,
+    BANK_NAME, EWALLET_PROVIDER, EWALLET_NUMBER, QRIS_MERCHANT_NAME,
+)
+from .forms import MenuForm, KategoriMenuForm, JenisCateringForm, AkunForm
 
 User = get_user_model()
 
@@ -16,6 +32,29 @@ User = get_user_model()
 # ==========================================================
 @role_required('administrator')
 def dashboard(request):
+    # ----- Grafik pertumbuhan pesanan 7 hari terakhir -----
+    hari_singkat = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min']
+    hari_ini = timezone.localdate()
+
+    grafik_pesanan = []
+    for i in range(6, -1, -1):
+        tanggal = hari_ini - timedelta(days=i)
+        jumlah = Pesanan.objects.filter(created_at__date=tanggal).count()
+        grafik_pesanan.append({
+            'hari': hari_singkat[tanggal.weekday()],
+            'tanggal': tanggal,
+            'jumlah': jumlah,
+        })
+
+    grafik_max = max((item['jumlah'] for item in grafik_pesanan), default=0)
+    for item in grafik_pesanan:
+        item['persentase'] = round((item['jumlah'] / grafik_max) * 100) if grafik_max else 0
+
+    # ----- Transaksi terbaru -----
+    transaksi_terbaru = Pesanan.objects.select_related(
+        'pelanggan', 'menu'
+    ).order_by('-created_at')[:5]
+
     context = {
         'total_menu': Menu.objects.count(),
         'total_pesanan': Pesanan.objects.count(),
@@ -24,6 +63,9 @@ def dashboard(request):
         'pesanan_selesai': Pesanan.objects.filter(status=Pesanan.StatusPesanan.SELESAI).count(),
         'total_pelanggan': User.objects.filter(role=User.Role.PELANGGAN).count(),
         'pelanggan_pending': User.objects.filter(role=User.Role.PELANGGAN, is_approved=False).count(),
+        'grafik_pesanan': grafik_pesanan,
+        'grafik_max': grafik_max,
+        'transaksi_terbaru': transaksi_terbaru,
     }
     return render(request, 'administrator/dashboard.html', context)
 
@@ -76,6 +118,52 @@ def kategori_delete(request, pk):
     messages.success(request, 'Kategori berhasil dihapus.')
     return redirect('administrator:kategori_list')
 
+# ==========================================================
+# MENU PELANGGAN
+# ==========================================================
+@role_required('pelanggan')
+def menu_detail(request, pk):
+    menu = get_object_or_404(Menu, pk=pk)
+
+    return render(
+        request,
+        "pelanggan/menu_detail.html",
+        {
+            "menu": menu,
+        },
+    )
+# ==========================================================
+# RIWAYAT PESANAN PELANGGAN
+# ==========================================================
+@login_required
+def riwayat_pesanan(request):
+
+    pesanan = Pesanan.objects.filter(
+        pelanggan=request.user
+    ).select_related("menu")
+
+    q = request.GET.get("q")
+
+    status = request.GET.get("status")
+
+    if q:
+        pesanan = pesanan.filter(
+            Q(kode_pesanan__icontains=q) |
+            Q(menu__nama_paket__icontains=q)
+        )
+
+    if status:
+        pesanan = pesanan.filter(status=status)
+
+    pesanan = pesanan.order_by("-created_at")
+
+    return render(
+        request,
+        "pelanggan/riwayat_pesanan.html",
+        {
+            "pesanan_list": pesanan
+        }
+    )
 
 # ==========================================================
 # KELOLA JENIS CATERING
@@ -133,12 +221,10 @@ def menu_list(request):
 
     menu = Menu.objects.select_related(
         'kategori',
-        'jenis_catering'
     ).order_by('-created_at')
 
     q = request.GET.get('q', '').strip()
     kategori = request.GET.get('kategori')
-    jenis = request.GET.get('jenis')
 
     if q != '':
         menu = menu.filter(
@@ -149,9 +235,6 @@ def menu_list(request):
     if kategori:
         menu = menu.filter(kategori_id=kategori)
 
-    if jenis:
-        menu = menu.filter(jenis_catering_id=jenis)
-
     paginator = Paginator(menu, 10)
     page_obj = paginator.get_page(request.GET.get('page'))
 
@@ -159,9 +242,7 @@ def menu_list(request):
         'page_obj': page_obj,
         'q': q,
         'kategori': kategori,
-        'jenis': jenis,
         'kategori_list': KategoriMenu.objects.all(),
-        'jenis_list': JenisCatering.objects.all(),
     })
 
 
@@ -247,27 +328,122 @@ def akun_delete(request, pk):
 @role_required('administrator')
 def transaksi_list(request):
     status_filter = request.GET.get('status', '')
+    q = request.GET.get('q', '').strip()
+
     pesanan = Pesanan.objects.select_related('pelanggan', 'menu', 'pembayaran').order_by('-created_at')
+
     if status_filter:
         pesanan = pesanan.filter(status=status_filter)
+    if q:
+        pesanan = pesanan.filter(
+            Q(kode_pesanan__icontains=q) | Q(pelanggan__username__icontains=q)
+        )
+
+    semua_pesanan = Pesanan.objects.all()
+
     paginator = Paginator(pesanan, 15)
     page_obj = paginator.get_page(request.GET.get('page'))
+
     return render(request, 'administrator/transaksi_list.html', {
         'page_obj': page_obj,
+        'transaksi': page_obj,
+        'q': q,
         'status_filter': status_filter,
         'status_choices': Pesanan.StatusPesanan.choices,
+        'total_transaksi': semua_pesanan.count(),
+        'total_menunggu': semua_pesanan.filter(status=Pesanan.StatusPesanan.MENUNGGU_PEMBAYARAN).count(),
+        'total_diproses': semua_pesanan.filter(status=Pesanan.StatusPesanan.DIPROSES).count(),
+        'total_selesai': semua_pesanan.filter(status=Pesanan.StatusPesanan.SELESAI).count(),
     })
 
 
 @role_required('administrator')
 def transaksi_detail(request, pk):
-    pesanan = get_object_or_404(Pesanan.objects.select_related('pelanggan', 'menu'), pk=pk)
-    pembayaran = getattr(pesanan, 'pembayaran', None)
-    return render(request, 'administrator/transaksi_detail.html', {
-        'pesanan': pesanan,
-        'pembayaran': pembayaran,
-    })
 
+    pesanan = get_object_or_404(
+        Pesanan.objects.select_related(
+            'pelanggan',
+            'menu',
+            'pembayaran'
+        ),
+        pk=pk
+    )
+    pembayaran = getattr(
+        pesanan,
+        'pembayaran',
+        None
+    )
+    return render(
+        request,
+        'administrator/transaksi_detail.html',
+        {
+            'pesanan': pesanan,
+            'pembayaran': pembayaran,
+            'status_choices': Pesanan.StatusPesanan.choices,
+            'status_verifikasi': Pembayaran.StatusVerifikasi.choices,
+            'bank_name': BANK_NAME,
+            'ewallet_provider': EWALLET_PROVIDER,
+            'ewallet_number': EWALLET_NUMBER,
+            'qris_merchant_name': QRIS_MERCHANT_NAME,
+        }
+    )
+
+@role_required('administrator')
+def transaksi_delete(request, pk):
+    pesanan = get_object_or_404(Pesanan, pk=pk)
+    if request.method == 'POST':
+        pesanan.delete()
+        messages.success(
+            request,
+            "Transaksi berhasil dihapus."
+        )
+
+    return redirect('administrator:transaksi_list')
+
+@role_required('administrator')
+def transaksi_update_status(request, pk):
+    pesanan = get_object_or_404(Pesanan, pk=pk)
+    if request.method == "POST":
+        status = request.POST.get("status")
+        if status in dict(Pesanan.StatusPesanan.choices):
+            pesanan.status = status
+            pesanan.save()
+            messages.success(
+                request,
+                "Status transaksi berhasil diperbarui."
+            )
+    return redirect(
+        "administrator:transaksi_detail",
+        pk=pk
+    )
+
+@role_required('administrator')
+def verifikasi_pembayaran(request, pk):
+
+    pembayaran = get_object_or_404(Pembayaran, pk=pk)
+    if request.method == "POST":
+        status = request.POST.get("status")
+
+        pembayaran.status_verifikasi = status
+        pembayaran.diverifikasi_oleh = request.user
+        pembayaran.tanggal_verifikasi = timezone.now()
+        pembayaran.save()
+
+        if status == Pembayaran.StatusVerifikasi.VALID:
+            pembayaran.pesanan.status = Pesanan.StatusPesanan.DIPROSES
+
+        elif status == Pembayaran.StatusVerifikasi.TIDAK_VALID:
+            pembayaran.pesanan.status = Pesanan.StatusPesanan.MENUNGGU_PEMBAYARAN
+        pembayaran.pesanan.save()
+        messages.success(
+            request,
+            "Pembayaran berhasil diverifikasi."
+        )
+
+    return redirect(
+        "administrator:transaksi_detail",
+        pk=pembayaran.pesanan.id
+    )
 
 # ==========================================================
 # LAPORAN
@@ -278,40 +454,126 @@ def laporan(request):
     tanggal_akhir = request.GET.get('tanggal_akhir')
     status_filter = request.GET.get('status', '')
 
-    pesanan = Pesanan.objects.select_related('pelanggan', 'menu').order_by('-created_at')
+    pesanan = Pesanan.objects.select_related(
+        'pelanggan',
+        'menu'
+    ).order_by('-created_at')
+
     if tanggal_awal:
-        pesanan = pesanan.filter(created_at__date__gte=tanggal_awal)
+        pesanan = pesanan.filter(
+            created_at__date__gte=tanggal_awal
+        )
     if tanggal_akhir:
-        pesanan = pesanan.filter(created_at__date__lte=tanggal_akhir)
+        pesanan = pesanan.filter(
+            created_at__date__lte=tanggal_akhir
+        )
     if status_filter:
         pesanan = pesanan.filter(status=status_filter)
 
-    total_pendapatan = sum(
-        p.total_harga for p in pesanan if p.status == Pesanan.StatusPesanan.SELESAI
+    context = {
+        "pesanan": pesanan,
+        "tanggal_awal": tanggal_awal or "",
+        "tanggal_akhir": tanggal_akhir or "",
+        "status_filter": status_filter,
+        "status_choices": Pesanan.StatusPesanan.choices,
+        "total_pesanan": pesanan.count(),
+        "pesanan_diproses":
+            pesanan.filter(
+                status=Pesanan.StatusPesanan.DIPROSES
+            ).count(),
+        "pesanan_selesai":
+            pesanan.filter(
+                status=Pesanan.StatusPesanan.SELESAI
+            ).count(),
+        "total_pendapatan":
+            pesanan.filter(
+                status=Pesanan.StatusPesanan.SELESAI
+            ).aggregate(
+                total=Sum("total_harga")
+            )["total"] or 0,
+    }
+
+    return render(
+        request,
+        "administrator/laporan.html",
+        context,
     )
 
-    return render(request, 'administrator/laporan.html', {
-        'pesanan': pesanan,
-        'total_pendapatan': total_pendapatan,
-        'tanggal_awal': tanggal_awal or '',
-        'tanggal_akhir': tanggal_akhir or '',
-        'status_filter': status_filter,
-        'status_choices': Pesanan.StatusPesanan.choices,
-    })
 
-
-@role_required('administrator')
+@role_required("administrator")
 def laporan_download_pdf(request):
-    """
-    Placeholder export PDF. Nanti diisi pakai library seperti WeasyPrint / ReportLab,
-    ambil queryset yang sama seperti view laporan() di atas.
-    """
-    # TODO: implementasi export PDF
-    return redirect('administrator:laporan')
+
+    response = HttpResponse(
+        content_type="application/pdf"
+    )
+
+    response[
+        "Content-Disposition"
+    ] = 'attachment; filename="laporan_catering.pdf"'
+
+
+    doc = SimpleDocTemplate(response)
+    styles = getSampleStyleSheet()
+    elements = []
+    elements.append(
+        Paragraph(
+            "LAPORAN TRANSAKSI CATERING",
+            styles["Heading1"]
+        )
+    )
+
+    table_data = [[
+
+        "Kode",
+        "Pelanggan",
+        "Menu",
+        "Porsi",
+        "Total",
+        "Status"
+
+    ]]
+
+    data = Pesanan.objects.select_related(
+        "pelanggan",
+        "menu"
+    )
+
+    for item in data:
+        table_data.append([
+            item.kode_pesanan,
+            item.pelanggan.username,
+            item.menu.nama_paket,
+            item.jumlah_porsi,
+            f"Rp {item.total_harga:,.0f}",
+            item.get_status_display()
+
+        ])
+
+    table = Table(table_data)
+    table.setStyle(
+        TableStyle([
+
+            ("BACKGROUND",(0,0),(-1,0),colors.darkgreen),
+            ("TEXTCOLOR",(0,0),(-1,0),colors.white),
+            ("GRID",(0,0),(-1,-1),1,colors.black),
+            ("BACKGROUND",(0,1),(-1,-1),colors.beige),
+            ("ALIGN",(0,0),(-1,-1),"CENTER"),
+            ("BOTTOMPADDING",(0,0),(-1,0),10),
+
+        ])
+
+    )
+
+    elements.append(table)
+
+    doc.build(elements)
+
+    return response
 
 
 @role_required('administrator')
 def laporan_download_excel(request):
+
     """
     Placeholder export Excel. Nanti diisi pakai openpyxl.
     """
@@ -340,3 +602,48 @@ def pengaturan(request):
             "form": form
         }
     )
+
+
+    workbook = Workbook()
+    worksheet = workbook.active
+
+    worksheet.title = "Laporan Catering"
+
+    worksheet.append([
+        "Kode Pesanan",
+        "Pelanggan",
+        "Menu",
+        "Jumlah Porsi",
+        "Total",
+        "Status",
+        "Tanggal"
+    ])
+
+    data = Pesanan.objects.select_related(
+        "pelanggan",
+        "menu"
+    )
+
+    for item in data:
+
+        worksheet.append([
+            item.kode_pesanan,
+            item.pelanggan.username,
+            item.menu.nama_paket,
+            item.jumlah_porsi,
+            float(item.total_harga),
+            item.get_status_display(),
+            item.created_at.strftime("%d-%m-%Y")
+        ])
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+    response[
+        "Content-Disposition"
+    ] = 'attachment; filename="laporan_catering.xlsx"'
+
+    workbook.save(response)
+
+    return response 
