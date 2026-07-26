@@ -7,6 +7,7 @@ from django.db.models import Q
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.utils import timezone
+from datetime import timedelta
 from openpyxl import Workbook
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
 from reportlab.lib import colors
@@ -28,6 +29,29 @@ User = get_user_model()
 # ==========================================================
 @role_required('administrator')
 def dashboard(request):
+    # ----- Grafik pertumbuhan pesanan 7 hari terakhir -----
+    hari_singkat = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min']
+    hari_ini = timezone.localdate()
+
+    grafik_pesanan = []
+    for i in range(6, -1, -1):
+        tanggal = hari_ini - timedelta(days=i)
+        jumlah = Pesanan.objects.filter(created_at__date=tanggal).count()
+        grafik_pesanan.append({
+            'hari': hari_singkat[tanggal.weekday()],
+            'tanggal': tanggal,
+            'jumlah': jumlah,
+        })
+
+    grafik_max = max((item['jumlah'] for item in grafik_pesanan), default=0)
+    for item in grafik_pesanan:
+        item['persentase'] = round((item['jumlah'] / grafik_max) * 100) if grafik_max else 0
+
+    # ----- Transaksi terbaru -----
+    transaksi_terbaru = Pesanan.objects.select_related(
+        'pelanggan', 'menu'
+    ).order_by('-created_at')[:5]
+
     context = {
         'total_menu': Menu.objects.count(),
         'total_pesanan': Pesanan.objects.count(),
@@ -36,6 +60,9 @@ def dashboard(request):
         'pesanan_selesai': Pesanan.objects.filter(status=Pesanan.StatusPesanan.SELESAI).count(),
         'total_pelanggan': User.objects.filter(role=User.Role.PELANGGAN).count(),
         'pelanggan_pending': User.objects.filter(role=User.Role.PELANGGAN, is_approved=False).count(),
+        'grafik_pesanan': grafik_pesanan,
+        'grafik_max': grafik_max,
+        'transaksi_terbaru': transaksi_terbaru,
     }
     return render(request, 'administrator/dashboard.html', context)
 
