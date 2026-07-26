@@ -39,4 +39,8 @@ urlpatterns = [
     path('laporan/', views.laporan, name='laporan'),
     path('laporan/download/pdf/', views.laporan_download_pdf, name='laporan_pdf'),
     path('laporan/download/excel/', views.laporan_download_excel, name='laporan_excel'),
+
+
+    #Pengaturan
+    path('pengaturan/', views.pengaturan, name='pengaturan'),
 ]

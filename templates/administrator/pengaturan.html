@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Pengaturan Sistem
+{% endblock %}
+
+{% block content %}
+
+<div class="panel">
+
+<h2>Pengaturan Pemesanan</h2>
+
+<form method="POST">
+
+{% csrf_token %}
+
+<div class="form-group">
+
+<label>Minimal Hari Pemesanan</label>
+
+{{ form.minimal_hari_pemesanan }}
+
+</div>
+
+<div class="form-group">
+
+<label>Maksimal Porsi Harian</label>
+
+{{ form.maksimal_porsi_harian }}
+
+</div>
+
+<button class="btn btn-primary">
+
+Simpan
+
+</button>
+
+</form>
+
+</div>
+
+{% endblock %}

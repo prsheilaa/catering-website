@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 
-from .models import Menu, KategoriMenu, JenisCatering
+from .models import Menu, KategoriMenu, JenisCatering, Pengaturan
 
 User = get_user_model()
 
@@ -30,6 +30,11 @@ class MenuForm(forms.ModelForm):
         widgets = {
             'deskripsi': forms.Textarea(attrs={'rows': 3}),
         }
+        
+class PengaturanForm(forms.ModelForm):
+    class Meta:
+        model = Pengaturan
+        fields = "__all__"
 
 
 class AkunForm(forms.ModelForm):
@@ -101,3 +106,11 @@ class AkunForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+    
+class PengaturanForm(forms.ModelForm):
+    class Meta:
+        model = Pengaturan
+        fields = [
+            'minimal_hari_pemesanan',
+            'maksimal_porsi_harian',
+        ]

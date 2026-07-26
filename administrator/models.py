@@ -224,3 +224,10 @@ class Pembayaran(models.Model):
 
     def __str__(self):
         return f"Pembayaran {self.pesanan.kode_pesanan} - {self.get_status_verifikasi_display()}"
+    
+class Pengaturan(models.Model):
+    minimal_hari_pemesanan = models.PositiveIntegerField(default=3)
+    maksimal_porsi_harian = models.PositiveIntegerField(default=1000)
+
+    def __str__(self):
+        return "Pengaturan Sistem"

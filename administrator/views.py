@@ -5,8 +5,8 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 
 from .decorators import role_required
-from .models import Menu, KategoriMenu, JenisCatering, Pesanan, Pembayaran
-from .forms import MenuForm, KategoriMenuForm, JenisCateringForm, AkunForm
+from .models import Menu, KategoriMenu, JenisCatering, Pesanan, Pembayaran, Pengaturan
+from .forms import (MenuForm, KategoriMenuForm, JenisCateringForm, AkunForm, PengaturanForm)
 
 User = get_user_model()
 
@@ -317,3 +317,26 @@ def laporan_download_excel(request):
     """
     # TODO: implementasi export Excel
     return redirect('administrator:laporan')
+
+@role_required('administrator')
+def pengaturan(request):
+    setting, created = Pengaturan.objects.get_or_create(pk=1)
+
+    if request.method == "POST":
+        form = PengaturanForm(request.POST, instance=setting)
+
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Pengaturan berhasil disimpan.")
+            return redirect("administrator:pengaturan")
+
+    else:
+        form = PengaturanForm(instance=setting)
+
+    return render(
+        request,
+        "administrator/pengaturan.html",
+        {
+            "form": form
+        }
+    )
