@@ -13,35 +13,54 @@ Administrator
 
 {% block sidebar_nav %}
 
-    <div class="nav-group">
+<div class="nav-group">
+    <div class="nav-label">Ringkasan</div>
 
-    <a href="{% url 'administrator:dashboard' %}" class="nav-link">
+    <a class="nav-link"
+       href="{% url 'administrator:dashboard' %}">
         Dashboard
-        </a>
+    </a>
+</div>
 
-    <a href="{% url 'administrator:kategori_list' %}" class="nav-link">
+<div class="nav-group">
+
+    <div class="nav-label">Katalog</div>
+
+    <a class="nav-link active"
+       href="{% url 'administrator:menu_list' %}">
+        Menu
+    </a>
+
+    <a class="nav-link"
+       href="{% url 'administrator:kategori_list' %}">
         Kategori
     </a>
 
-    <a href="{% url 'administrator:jenis_catering_list' %}" class="nav-link">
+    <a class="nav-link"
+       href="{% url 'administrator:jenis_catering_list' %}">
         Jenis Catering
     </a>
 
-    <a href="{% url 'administrator:menu_list' %}" class="nav-link active">
-        Menu Catering
-    </a>
+</div>
 
-    <a href="{% url 'administrator:akun_list' %}" class="nav-link">
+<div class="nav-group">
+
+    <div class="nav-label">Operasional</div>
+
+    <a class="nav-link"
+       href="{% url 'administrator:akun_list' %}">
         Kelola Akun
     </a>
 
-    <a href="{% url 'administrator:transaksi_list' %}" class="nav-link">
+    <a class="nav-link"
+       href="{% url 'administrator:transaksi_list' %}">
         Transaksi
-        </a>
+    </a>
 
-    <a href="{% url 'administrator:laporan' %}" class="nav-link">
+    <a class="nav-link"
+       href="{% url 'administrator:laporan' %}">
         Laporan
-        </a>
+    </a>
 
 </div>
 
@@ -196,25 +215,18 @@ Administrator
                 </td>
             
                 <td>
-            
-                    <a href="{% url 'administrator:menu_edit' menu.pk %}"
-                       class="btn btn-gold">
-            
+                    <div class="action-buttons">
+                        <a href="{% url 'administrator:menu_edit' menu.pk %}"
+                        class="btn btn-gold">
                         Edit
-            
-                    </a>
-            
-                    <a href="{% url 'administrator:menu_hapus' menu.pk %}"
-                       class="btn btn-ghost"
-                       onclick="return confirm('Yakin ingin menghapus menu ini?')">
-            
-                        Hapus
-            
-                    </a>
-            
+                        </a>
+                        <a href="{% url 'administrator:menu_hapus' menu.pk %}"
+                        class="btn btn-ghost"
+                        onclick="return confirm('Yakin ingin menghapus menu ini?')">
+                        Hapus</a>
+                    </div>
                 </td>
-            
-            </tr>
+                </tr>
             
             {% empty %}
             
