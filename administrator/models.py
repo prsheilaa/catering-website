@@ -9,7 +9,6 @@ EWALLET_NUMBER = "0812-3456-7890"
 EWALLET_ACCOUNT_NAME = "Meja Nusantara Catering"
 QRIS_MERCHANT_NAME = "MEJA NUSANTARA CATERING"
 
-
 # ==========================================================
 # USER & ROLE
 # ==========================================================
@@ -191,6 +190,9 @@ class Pesanan(models.Model):
         if not self.total_harga:
             self.total_harga = self.menu.harga_per_porsi * self.jumlah_porsi
         super().save(*args, **kwargs)
+    @property
+    def virtual_account_number(self):
+                                                                                                                return f"{BANK_VA_PREFIX}{self.id:010d}"
 
 class ItemPesanan(models.Model):
     """

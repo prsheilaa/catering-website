@@ -20,8 +20,9 @@ urlpatterns = [
     path('pesan/', views.buat_pesanan, name='buat_pesanan'),
     path('pesanan/<int:pesanan_id>/bayar/', views.upload_pembayaran, name='upload_pembayaran'),
 
-    # Riwayat & detail
+     # Riwayat & detail
     path('riwayat/', views.riwayat_pesanan, name='riwayat_pesanan'),
     path('pesanan/<int:pesanan_id>/', views.detail_pesanan, name='detail_pesanan'),
+    path('pesanan/<int:pesanan_id>/struk/', views.unduh_struk, name='unduh_struk'),
     path('pesanan/<int:pesanan_id>/batalkan/', views.batalkan_pesanan, name='batalkan_pesanan'),
 ]

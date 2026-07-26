@@ -86,6 +86,7 @@
   {% endif %}
 
   <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:22px;">
+    <a href="{% url 'pelanggan:unduh_struk' pesanan.id %}" class="btn btn-primary">Unduh Struk</a>
     {% if pesanan.status == 'menunggu_pembayaran' or pesanan.status == 'diproses' %}
     <form method="POST" action="{% url 'pelanggan:batalkan_pesanan' pesanan.id %}"
           onsubmit="return confirm('Yakin mau membatalkan pesanan ini?');">
