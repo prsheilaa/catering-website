@@ -15,6 +15,13 @@
     <a href="{% url 'administrator:transaksi_list' %}" class="btn btn-ghost">
         ← Kembali
     </a>
+
+    <form method="POST" action="{% url 'administrator:transaksi_hapus' pesanan.id %}"
+          onsubmit="return confirm('Yakin ingin menghapus transaksi ini? Tindakan ini tidak bisa dibatalkan.');"
+          style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger-outline">Hapus Transaksi</button>
+    </form>
 </div>
 
 
@@ -233,6 +240,24 @@
 
         <tr>
 
+            <th>Tujuan Pembayaran</th>
+
+            <td>
+                {% if pembayaran.metode == 'transfer_bank' %}
+                    VA <span class="mono">{{ pesanan.virtual_account_number }}</span> — {{ bank_name }}
+                {% elif pembayaran.metode == 'e_wallet' %}
+                    {{ ewallet_provider }} — <span class="mono">{{ ewallet_number }}</span>
+                {% elif pembayaran.metode == 'qris' %}
+                    QRIS — {{ qris_merchant_name }}
+                {% else %}
+                    Dibayar tunai langsung ke petugas
+                {% endif %}
+            </td>
+
+        </tr>
+
+        <tr>
+
             <th>Jumlah Bayar</th>
 
             <td>
@@ -254,27 +279,18 @@
             <td>
 
                 {% if pembayaran.status_verifikasi == "menunggu" %}
-
                     <span class="badge menunggu">
-
                         Menunggu
-
                     </span>
 
-                {% elif pembayaran.status_verifikasi == "diterima" %}
-
+                {% elif pembayaran.status_verifikasi == "valid" %}
                     <span class="badge selesai">
-
-                        Diterima
-
+                        Valid
                     </span>
 
-                {% elif pembayaran.status_verifikasi == "ditolak" %}
-
+                {% elif pembayaran.status_verifikasi == "tidak_valid" %}
                     <span class="badge batal">
-
-                        Ditolak
-
+                        Tidak Valid
                     </span>
 
                 {% else %}
@@ -293,6 +309,7 @@
 
             <td>
 
+                {% if pembayaran.bukti_bayar %}
                 <a href="{{ pembayaran.bukti_bayar.url }}" target="_blank">
 
                     <img
@@ -300,6 +317,15 @@
                             style="width:280px;border-radius:12px;">
 
                 </a>
+                {% else %}
+                <span style="color:var(--text-muted);">
+                    {% if pembayaran.metode == 'tunai' %}
+                        Tidak ada bukti — pembayaran tunai di tempat.
+                    {% else %}
+                        Bukti pembayaran belum diunggah.
+                    {% endif %}
+                </span>
+                {% endif %}
 
             </td>
 

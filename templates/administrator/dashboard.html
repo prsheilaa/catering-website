@@ -117,7 +117,6 @@
   </p>
 </div>
 {% endif %}
-
 <div class="panel">
   <div class="panel-head">
     <h3 style="margin:0;">Pertumbuhan pesanan mingguan</h3>
@@ -126,17 +125,28 @@
       <button type="button">Mingguan</button>
     </div>
   </div>
-  {# Grafik ilustratif — hubungkan ke data penjualan mingguan sesungguhnya saat tersedia #}
+
   <div class="bar-chart">
-    <div class="bar-col"><div class="bar" style="height:62%;"></div><div class="bar-day">Sen</div></div>
-    <div class="bar-col"><div class="bar" style="height:44%;"></div><div class="bar-day">Sel</div></div>
-    <div class="bar-col"><div class="bar" style="height:82%;"></div><div class="bar-day">Rab</div></div>
-    <div class="bar-col"><div class="bar" style="height:58%;"></div><div class="bar-day">Kam</div></div>
-    <div class="bar-col"><div class="bar peak" style="height:100%;"></div><div class="bar-day">Jum</div></div>
-    <div class="bar-col"><div class="bar" style="height:38%;"></div><div class="bar-day">Sab</div></div>
-    <div class="bar-col"><div class="bar" style="height:28%;"></div><div class="bar-day">Min</div></div>
+
+    {% for item in grafik_pesanan %}
+
+    <div class="bar-col">
+
+      <div class="bar {% if item.jumlah == grafik_max %}peak{% endif %}"
+           style="height:{{ item.persentase }}%;">
+      </div>
+
+      <div class="bar-day">
+        {{ item.hari }}
+      </div>
+
+    </div>
+
+    {% endfor %}
+
   </div>
-</div>
+
+</div> <!-- PANEL GRAFIK DITUTUP DI SINI -->
 
 <div class="panel">
   <div class="panel-head">
