@@ -1,46 +1,57 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends "base.html" %}
 
-{% block title %}Data Menu | Meja Nusantara{% endblock %}
-
-{% block brand_sub %}
-Administrator
-{% endblock %}
-
-{% block topbar_role %}
-Administrator
-{% endblock %}
+{% block title %}Transaksi - Administrator{% endblock %}
+{% block topbar_title %}Transaksi{% endblock %}
+{% block topbar_role %}Administrator{% endblock %}
 
 {% block sidebar_nav %}
 
 <div class="nav-group">
+    <div class="nav-label">Ringkasan</div>
 
-    <a href="{% url 'administrator:dashboard' %}" class="nav-link">
+    <a class="nav-link" href="{% url 'administrator:dashboard' %}">
         Dashboard
     </a>
+</div>
 
-    <a href="{% url 'administrator:kategori_list' %}" class="nav-link">
+<div class="nav-group">
+
+    <div class="nav-label">Katalog</div>
+
+    <a class="nav-link" href="{% url 'administrator:menu_list' %}">
+        Menu
+    </a>
+
+    <a class="nav-link" href="{% url 'administrator:kategori_list' %}">
         Kategori
     </a>
 
-    <a href="{% url 'administrator:jenis_catering_list' %}" class="nav-link">
+    <a class="nav-link" href="{% url 'administrator:jenis_catering_list' %}">
         Jenis Catering
     </a>
 
-    <a href="{% url 'administrator:menu_list' %}" class="nav-link active">
-        Menu Catering
-    </a>
+</div>
 
-    <a href="{% url 'administrator:akun_list' %}" class="nav-link">
+<div class="nav-group">
+
+    <div class="nav-label">Operasional</div>
+
+    <a class="nav-link" href="{% url 'administrator:akun_list' %}">
         Kelola Akun
     </a>
 
-    <a href="{% url 'administrator:transaksi_list' %}" class="nav-link">
+    <a class="nav-link active"
+       href="{% url 'administrator:transaksi_list' %}">
+
         Transaksi
+
     </a>
 
-    <a href="{% url 'administrator:laporan' %}" class="nav-link">
+    <a class="nav-link"
+       href="{% url 'administrator:laporan' %}">
+
         Laporan
+
     </a>
 
 </div>
@@ -49,400 +60,298 @@ Administrator
 
 {% block content %}
 
+
+<div class="page-head">
+
+<div>
+
+<h1>Daftar Transaksi</h1>
+
+<p>Kelola seluruh transaksi pelanggan Meja Nusantara.</p>
+
+</div>
+
+<div class="date-pill">
+
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<rect x="3" y="4" width="18" height="18" rx="2"/>
+<line x1="16" y1="2" x2="16" y2="6"/>
+<line x1="8" y1="2" x2="8" y2="6"/>
+<line x1="3" y1="10" x2="21" y2="10"/>
+</svg>
+
+{% now "l, j F Y" %}
+
+</div>
+
+</div>
+
+<!-- ===================== CARD RINGKAS ===================== -->
+
+<div class="stat-grid">
+
+    <div class="ticket stat-card">
+        <div class="ticket-body">
+            <div class="stat-label">Total Transaksi</div>
+            <div class="stat-value">
+                {{ total_transaksi }}
+            </div>
+        </div>
+    </div>
+
+    <div class="ticket stat-card">
+        <div class="ticket-body">
+            <div class="stat-label">Menunggu</div>
+            <div class="stat-value accent">
+                {{ total_menunggu }}
+            </div>
+        </div>
+    </div>
+
+    <div class="ticket stat-card">
+        <div class="ticket-body">
+            <div class="stat-label">Diproses</div>
+            <div class="stat-value">
+                {{ total_diproses }}
+            </div>
+        </div>
+    </div>
+
+    <div class="ticket stat-card">
+        <div class="ticket-body">
+            <div class="stat-label">Selesai</div>
+            <div class="stat-value">
+                {{ total_selesai }}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<!-- ===================== SEARCH ===================== -->
 <div class="panel">
 
-    <div class="section-header">
+<div class="panel-head">
 
-        <div>
-
-            <h2 style="margin-bottom:5px;">
-                Data Menu Catering
-            </h2>
-
-            <p style="color:#7b6f61;">
-                Kelola seluruh menu catering yang tersedia.
-            </p>
-
-        </div>
-
-        <a href="{% url 'administrator:menu_tambah' %}" class="btn btn-primary">
-            + Tambah Menu
-        </a>
-
-    </div>
-
-    <form method="GET" style="margin-top:25px;margin-bottom:25px;">
-
-        <div style="display:flex;gap:15px;">
-
-            <input
-                type="text"
-                name="q"
-                value="{{ q }}"
-                placeholder="Cari nama menu atau kategori..."
-                class="form-control">
-
-            <button class="btn btn-primary">
-                Cari
-            </button>
-
-        </div>
-
-    </form>
-
-    <div class="table-responsive">
-
-        <table class="table">
-
-            <thead>
-
-            <tr>
-
-                <th>Foto</th>
-
-                <th>Nama Menu</th>
-
-                <th>Kategori</th>
-
-                <th>Harga</th>
-
-                <th>Status</th>
-
-                <th width="170">
-                    Aksi
-                </th>
-
-            </tr>
-
-            </thead>
-
-            <tbody>
-
-            {% for menu in page_obj %}
-
-            <tr>
-
-                <td>
-            
-                    {% if menu.foto %}
-            
-                        <img src="{{ menu.foto.url }}"
-                             alt="{{ menu.nama_paket }}"
-                             style="
-                             width:80px;
-                             height:60px;
-                             object-fit:cover;
-                             border-radius:10px;
-                             border:1px solid #ddd;">
-            
-                    {% else %}
-            
-                        <img src="{% static 'images/no-image.png' %}"
-                             alt="No Image"
-                             style="
-                             width:80px;
-                             height:60px;
-                             object-fit:cover;
-                             border-radius:10px;
-                             border:1px solid #ddd;">
-            
-                    {% endif %}
-            
-                </td>
-            
-                <td>
-            
-                    <strong>
-                        {{ menu.nama_paket }}
-                    </strong>
-            
-                    {% if menu.deskripsi %}
-                    <br>
-                    <small style="color:#777;">
-                        {{ menu.deskripsi|truncatechars:50 }}
-                    </small>
-                    {% endif %}
-            
-                </td>
-            
-                <td>
-            
-                    {{ menu.kategori.nama }}
-            
-                </td>
-            
-                <td>
-            
-                    Rp {{ menu.harga_per_porsi }}
-            
-                </td>
-            
-                <td>
-            
-                    {% if menu.status_stok == 'tersedia' %}
-            
-                        <span class="badge selesai">
-                            Tersedia
-                        </span>
-            
-                    {% else %}
-            
-                        <span class="badge dibatalkan">
-                            Kosong
-                        </span>
-            
-                    {% endif %}
-            
-                </td>
-            
-                <td>
-            
-                    <a href="{% url 'administrator:menu_edit' menu.pk %}"
-                       class="btn btn-gold">
-            
-                        Edit
-            
-                    </a>
-            
-                    <a href="{% url 'administrator:menu_hapus' menu.pk %}"
-                       class="btn btn-ghost"
-                       onclick="return confirm('Yakin ingin menghapus menu ini?')">
-            
-                        Hapus
-            
-                    </a>
-            
-                </td>
-            
-            </tr>
-            
-            {% empty %}
-            
-            <tr>
-            
-                <td colspan="7" style="text-align:center;padding:40px;">
-            
-                    <img src="{% static 'images/empty-menu.svg' %}"
-                         width="140">
-            
-                    <br><br>
-            
-                    <h3>Belum Ada Menu</h3>
-            
-                    <p style="color:#777;">
-            
-                        Silakan tambahkan menu catering terlebih dahulu.
-            
-                    </p>
-            
-                    <a href="{% url 'administrator:menu_tambah' %}"
-                       class="btn btn-primary">
-            
-                        Tambah Menu
-            
-                    </a>
-            
-                </td>
-            
-            </tr>
-            
-            {% endfor %}
-
-        </tbody>
-
-    </table>
+<h3>Pencarian Transaksi</h3>
 
 </div>
 
-{% if page_obj.paginator.count > 0 %}
+<form method="get">
 
-<div style="display:flex;justify-content:space-between;align-items:center;margin-top:25px;flex-wrap:wrap;gap:15px;">
+<div style="
+display:flex;
+gap:15px;
+align-items:center;">
 
-    <div style="color:#7b6f61;">
+<input
+type="text"
+name="q"
+class="form-control"
+placeholder="Cari kode pesanan atau pelanggan..."
+value="{{ q }}">
 
-        Menampilkan
+<button
+class="btn btn-primary">
 
-        <strong>
+Cari
 
-            {{ page_obj.start_index }}
+</button>
 
-        </strong>
-
-        -
-
-        <strong>
-
-            {{ page_obj.end_index }}
-
-        </strong>
-
-        dari
-
-        <strong>
-
-            {{ page_obj.paginator.count }}
-
-        </strong>
-
-        menu.
-
-    </div>
-
-    <div style="display:flex;gap:8px;align-items:center;">
-
-        {% if page_obj.has_previous %}
-
-            <a href="?page=1&q={{ q }}"
-               class="btn btn-ghost">
-
-                « Awal
-
-            </a>
-
-            <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}"
-               class="btn btn-ghost">
-
-                ‹ Sebelumnya
-
-            </a>
-
-        {% endif %}
-
-        <span class="btn btn-primary">
-
-            {{ page_obj.number }}
-
-            /
-
-            {{ page_obj.paginator.num_pages }}
-
-        </span>
-
-        {% if page_obj.has_next %}
-
-            <a href="?page={{ page_obj.next_page_number }}&q={{ q }}"
-               class="btn btn-ghost">
-
-                Berikutnya ›
-
-            </a>
-
-            <a href="?page={{ page_obj.paginator.num_pages }}&q={{ q }}"
-               class="btn btn-ghost">
-
-                Akhir »
-
-            </a>
-
-        {% endif %}
-
-    </div>
+{% if q or status_filter %}
+<a href="{% url 'administrator:transaksi_list' %}" class="btn btn-ghost">Reset</a>
+{% endif %}
 
 </div>
+
+</form>
+
+<div class="filter-pills" style="margin-top:14px;">
+  <a href="?{% if q %}q={{ q }}{% endif %}" class="filter-pill {% if not status_filter %}active{% endif %}">Semua Status</a>
+  {% for value, label in status_choices %}
+  <a href="?status={{ value }}{% if q %}&q={{ q }}{% endif %}" class="filter-pill {% if status_filter == value %}active{% endif %}">{{ label }}</a>
+  {% endfor %}
+</div>
+
+</div>
+
+
+
+<!-- ===================== TABEL ===================== -->
+
+<div class="panel">
+
+    <div class="panel-head">
+
+        <h3>Daftar Transaksi</h3>
+
+    </div>
+
+{% if page_obj %}
+
+<table class="data">
+
+    <thead>
+
+        <tr>
+
+            <th>Kode</th>
+            <th>Pelanggan</th>
+            <th>Menu</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Acara</th>
+            <th>Aksi</th>
+
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+{% for pesanan in page_obj %}
+
+<tr>
+
+<td class="mono">
+
+{{ pesanan.kode_pesanan }}
+
+</td>
+
+<td>
+
+<div class="cell-person">
+
+<div class="avatar avatar-sm">
+
+{{ pesanan.pelanggan.username|slice:":2"|upper }}
+
+</div>
+
+{{ pesanan.pelanggan.username }}
+
+</div>
+
+</td>
+
+<td>
+
+<span class="pill-tag">
+
+{{ pesanan.menu.nama_paket }}
+
+</span>
+
+</td>
+
+<td>
+
+Rp {{ pesanan.total_harga }}
+
+</td>
+
+<td>
+
+{% if pesanan.status == 'menunggu_pembayaran' %}
+
+<span class="badge menunggu">
+
+Menunggu
+
+</span>
+
+{% elif pesanan.status == 'diproses' %}
+
+<span class="badge diproses">
+
+Diproses
+
+</span>
+
+{% elif pesanan.status == 'selesai' %}
+
+<span class="badge selesai">
+
+Selesai
+
+</span>
+
+{% elif pesanan.status == 'dibatalkan' %}
+
+<span class="badge batal">
+
+Dibatalkan
+
+</span>
+
+{% else %}
+
+<span class="badge">
+
+{{ pesanan.get_status_display }}
+
+</span>
+
+{% endif %}
+
+</td>
+
+<td>
+
+{{ pesanan.waktu_acara|date:"d M Y H:i" }}
+
+</td>
+
+<td>
+
+<a href="{% url 'administrator:transaksi_detail' pesanan.id %}"
+class="btn btn-primary">
+
+Detail
+
+</a>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+<div class="pagination">
+  <div class="pagination-count">
+    Menampilkan <strong>{{ page_obj.start_index }}</strong>–<strong>{{ page_obj.end_index }}</strong>
+    dari <strong>{{ page_obj.paginator.count }}</strong> transaksi
+  </div>
+  {% if page_obj.paginator.num_pages > 1 %}
+  <div class="pagination-links">
+    {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&status={{ status_filter }}" class="btn btn-ghost">‹ Sebelumnya</a>
+    {% endif %}
+    <span class="pagination-current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&status={{ status_filter }}" class="btn btn-ghost">Berikutnya ›</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+{% else %}
+
+<p style="padding:20px;color:gray">
+
+Belum ada transaksi.
+
+</p>
 
 {% endif %}
 
 </div>
 
-<style>
-
-.table-responsive{
-overflow-x:auto;
-}
-
-.table{
-width:100%;
-border-collapse:collapse;
-}
-
-.table th{
-background:#f7f2ea;
-color:#5c4033;
-font-weight:700;
-padding:15px;
-text-align:left;
-border-bottom:2px solid #e8ddcf;
-}
-
-.table td{
-padding:15px;
-border-bottom:1px solid #eee;
-vertical-align:middle;
-}
-
-.table tr:hover{
-background:#fcfaf7;
-}
-
-.form-control{
-width:100%;
-padding:12px 15px;
-border:1px solid #d8c9b5;
-border-radius:10px;
-outline:none;
-font-size:15px;
-background:white;
-}
-
-.form-control:focus{
-border-color:#8b5e3c;
-}
-
-.badge{
-display:inline-block;
-padding:6px 14px;
-border-radius:999px;
-font-size:13px;
-font-weight:600;
-}
-
-.badge.selesai{
-background:#dff5e6;
-color:#207245;
-}
-
-.badge.dibatalkan{
-background:#ffe1df;
-color:#b12828;
-}
-
-.btn{
-display:inline-block;
-text-decoration:none;
-padding:10px 18px;
-border-radius:10px;
-font-weight:600;
-transition:.25s;
-}
-
-.btn-primary{
-background:#8b5e3c;
-color:white;
-}
-
-.btn-primary:hover{
-background:#704728;
-}
-
-.btn-gold{
-background:#c49a47;
-color:white;
-}
-
-.btn-gold:hover{
-background:#a57d34;
-}
-
-.btn-ghost{
-background:#f5f3ef;
-color:#5c4033;
-margin-left:5px;
-}
-
-.btn-ghost:hover{
-background:#ebe5db;
-}
-
-</style>
 
 {% endblock %}
