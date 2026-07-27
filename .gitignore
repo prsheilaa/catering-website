@@ -1,3 +1,16 @@
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Database lokal
+db.sqlite3
+
+# Folder upload
+media/
+
 # Python
 __pycache__/
 *.py[cod]
@@ -20,3 +33,4 @@ media/
 
 # Environment
 .env
+

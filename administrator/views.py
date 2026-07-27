@@ -15,6 +15,9 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import Paragraph
 
 from .decorators import role_required
+
+from .models import Menu, KategoriMenu, JenisCatering, Pesanan, Pembayaran, Pengaturan
+from .forms import (MenuForm, KategoriMenuForm, JenisCateringForm, AkunForm, PengaturanForm)
 from .models import (
     Menu, KategoriMenu, JenisCatering, Pesanan, Pembayaran,
     BANK_NAME, EWALLET_PROVIDER, EWALLET_NUMBER, QRIS_MERCHANT_NAME,
@@ -571,46 +574,41 @@ def laporan_download_pdf(request):
 @role_required('administrator')
 def laporan_download_excel(request):
 
-    workbook = Workbook()
-    worksheet = workbook.active
+    """
+    Placeholder export Excel. Nanti diisi pakai openpyxl.
+    """
+    # TODO: implementasi export Excel
+    return redirect('administrator:laporan')
 
-    worksheet.title = "Laporan Catering"
+@role_required('administrator')
+def pengaturan(request):
 
-    worksheet.append([
-        "Kode Pesanan",
-        "Pelanggan",
-        "Menu",
-        "Jumlah Porsi",
-        "Total",
-        "Status",
-        "Tanggal"
-    ])
+    data = Pengaturan.objects.first()
 
-    data = Pesanan.objects.select_related(
-        "pelanggan",
-        "menu"
+    if not data:
+        data = Pengaturan.objects.create()
+
+    if request.method == "POST":
+        form = PengaturanForm(
+            request.POST,
+            request.FILES,
+            instance=data
+        )
+
+        if form.is_valid():
+            form.save()
+
+            messages.success(request, "Pengaturan berhasil disimpan")
+
+            return redirect("pengaturan")
+
+    else:
+        form = PengaturanForm(instance=data)
+
+    return render(
+        request,
+        "administrator/pengaturan.html",
+        {
+            "form": form
+        }
     )
-
-    for item in data:
-
-        worksheet.append([
-            item.kode_pesanan,
-            item.pelanggan.username,
-            item.menu.nama_paket,
-            item.jumlah_porsi,
-            float(item.total_harga),
-            item.get_status_display(),
-            item.created_at.strftime("%d-%m-%Y")
-        ])
-
-    response = HttpResponse(
-        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-
-    response[
-        "Content-Disposition"
-    ] = 'attachment; filename="laporan_catering.xlsx"'
-
-    workbook.save(response)
-
-    return response
