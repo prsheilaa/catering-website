@@ -108,9 +108,20 @@ class AkunForm(forms.ModelForm):
         return user
     
 class PengaturanForm(forms.ModelForm):
+
     class Meta:
         model = Pengaturan
+
         fields = [
-            'minimal_hari_pemesanan',
-            'maksimal_porsi_harian',
+            "nama_catering",
+            "whatsapp",
+            "email",
+            "alamat",
+            "minimal_hari_pemesanan",
+            "maksimal_porsi_harian",
+            "nama_bank",
+            "nomor_rekening",
+            "atas_nama",
+            "qris",
+            "logo",
         ]

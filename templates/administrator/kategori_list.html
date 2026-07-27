@@ -1,78 +1,27 @@
 {% extends 'base.html' %}
 {% load static %}
 
-<<<<<<< HEAD
-{% block title %}Data Menu | Meja Nusantara{% endblock %}
+{% block title %}Kategori - Meja Nusantara{% endblock %}
 {% block brand_sub %}Administrator{% endblock %}
 {% block topbar_role %}Administrator{% endblock %}
-{% block topbar_title %}Menu{% endblock %}
-=======
-{% block title %}Kategori Menu - Meja Nusantara{% endblock %}
-{% block brand_sub %}Panel Admin{% endblock %}
 {% block topbar_title %}Kategori{% endblock %}
-{% block topbar_role %}Administrator{% endblock %}
->>>>>>> main
 
 {% block sidebar_nav %}
 <div class="nav-group">
-<<<<<<< HEAD
   <div class="nav-label">Ringkasan</div>
   <a class="nav-link" href="{% url 'administrator:dashboard' %}">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
     Dashboard
   </a>
-=======
-    <div class="nav-label">Ringkasan</div>
-
-    <a href="{% url 'administrator:dashboard' %}" class="nav-link">
-        Dashboard
-    </a>
-</div>
-
-<div class="nav-group">
-
-    <div class="nav-label">Katalog</div>
-
-    <a href="{% url 'administrator:menu_list' %}" class="nav-link">
-        Menu
-    </a>
-
-    <a href="{% url 'administrator:kategori_list' %}" class="nav-link active">
-        Kategori
-    </a>
-
-    <a href="{% url 'administrator:jenis_catering_list' %}" class="nav-link">
-        Jenis Catering
-    </a>
-
-</div>
-
-<div class="nav-group">
-
-    <div class="nav-label">Operasional</div>
-
-    <a href="{% url 'administrator:akun_list' %}" class="nav-link">
-        Kelola Akun
-    </a>
-
-    <a href="{% url 'administrator:transaksi_list' %}" class="nav-link">
-        Transaksi
-    </a>
-
-    <a href="{% url 'administrator:laporan' %}" class="nav-link">
-        Laporan
-    </a>
-
->>>>>>> main
 </div>
 
 <div class="nav-group">
   <div class="nav-label">Katalog</div>
-  <a class="nav-link active" href="{% url 'administrator:menu_list' %}">
+  <a class="nav-link" href="{% url 'administrator:menu_list' %}">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v7c0 1 1 2 2 2h2c1 0 2-1 2-2V3"/><path d="M6 12v9"/><path d="M15 3c-1.5 0-3 1.5-3 4v3h3v9"/><path d="M15 3v6"/></svg>
     Menu
   </a>
-  <a class="nav-link" href="{% url 'administrator:kategori_list' %}">
+  <a class="nav-link active" href="{% url 'administrator:kategori_list' %}">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 12 22l-9-9V3h10z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
     Kategori
   </a>
@@ -96,36 +45,58 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
     Laporan
   </a>
+  <a class="nav-link" href="{% url 'administrator:pengaturan' %}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33
+                 1.65 1.65 0 0 0-1 1.51V21
+                 a2 2 0 1 1-4 0v-.09
+                 a1.65 1.65 0 0 0-1-1.51
+                 1.65 1.65 0 0 0-1.82.33l-.06.06
+                 a2 2 0 1 1-2.83-2.83l.06-.06
+                 a1.65 1.65 0 0 0 .33-1.82
+                 1.65 1.65 0 0 0-1.51-1H3
+                 a2 2 0 1 1 0-4h.09
+                 a1.65 1.65 0 0 0 1.51-1
+                 1.65 1.65 0 0 0-.33-1.82l-.06-.06
+                 a2 2 0 1 1 2.83-2.83l.06.06
+                 a1.65 1.65 0 0 0 1.82.33h.01
+                 A1.65 1.65 0 0 0 10 3.09V3
+                 a2 2 0 1 1 4 0v.09
+                 a1.65 1.65 0 0 0 1 1.51
+                 1.65 1.65 0 0 0 1.82-.33l.06-.06
+                 a2 2 0 1 1 2.83 2.83l-.06.06
+                 a1.65 1.65 0 0 0-.33 1.82v.01
+                 a1.65 1.65 0 0 0 1.51 1H21
+                 a2 2 0 1 1 0 4h-.09
+                 a1.65 1.65 0 0 0-1.51 1z"></path>
+    </svg>
+    <span>Pengaturan</span>
+</a>
 </div>
 {% endblock %}
 
 {% block content %}
 <div class="page-head">
   <div>
-    <h1>Menu Catering</h1>
-    <p>Kelola seluruh menu catering yang tersedia.</p>
+    <h1>Kategori</h1>
+    <p>Kategori seluruh Menu.</p>
   </div>
 
-  <a href="{% url 'administrator:menu_tambah' %}" class="btn btn-primary">
-    + Tambah Menu
+  <a href="{% url 'administrator:kategori_tambah' %}" class="btn btn-primary">
+    + Tambah Kategori
   </a>
 </div>
 
 <div class="panel" style="padding: 14px 20px; margin-bottom: 18px;">
-  <form method="get" style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+  <form method="get" style="display:flex; gap:10px; align-items:center;">
     <input
       type="text"
       name="q"
       value="{{ q }}"
-      placeholder="Cari nama menu atau kategori..."
+      placeholder="Cari kategori..."
       style="flex:1; min-width:220px; padding:10px 14px; border:1px solid var(--border); border-radius:8px; font-family:inherit; font-size:14px;">
-
-    <select name="kategori" onchange="this.form.submit()" style="padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-family:inherit; font-size:14px;">
-      <option value="">Semua kategori</option>
-      {% for k in kategori_list %}
-        <option value="{{ k.pk }}" {% if kategori == k.pk|stringformat:"s" %}selected{% endif %}>{{ k.nama }}</option>
-      {% endfor %}
-    </select>
 
     <button type="submit" class="btn btn-gold">Cari</button>
   </form>
@@ -136,54 +107,34 @@
   <table class="data">
     <thead>
       <tr>
-        <th>Foto</th>
-        <th>Nama Menu</th>
-        <th>Kategori</th>
-        <th>Harga</th>
+        <th>Kategori Menu</th>
+        <th>Deskripsi</th>
         <th>Status</th>
         <th style="text-align:right;">Aksi</th>
       </tr>
     </thead>
     <tbody>
-      {% for menu in page_obj %}
+      {% for kategori in page_obj %}
       <tr>
+        <td><strong>{{ kategori.nama }}</strong></td>
+
+        <td>{{ kategori.deskripsi|default:"-" }}</td>
+
         <td>
-          {% if menu.foto %}
-            <img src="{{ menu.foto.url }}" alt="{{ menu.nama_paket }}"
-                 style="width:64px; height:48px; object-fit:cover; border-radius:8px; border:1px solid var(--border);">
+          {% if kategori.is_active %}
+            <span class="badge selesai">Aktif</span>
           {% else %}
-            <img src="{% static 'images/no-image.png' %}" alt="No Image"
-                 style="width:64px; height:48px; object-fit:cover; border-radius:8px; border:1px solid var(--border);">
-          {% endif %}
-        </td>
-
-        <td>
-          <strong>{{ menu.nama_paket }}</strong>
-          {% if menu.deskripsi %}
-            <br>
-            <span style="font-size:12.5px; color: var(--text-muted);">{{ menu.deskripsi|truncatechars:50 }}</span>
-          {% endif %}
-        </td>
-
-        <td>{{ menu.kategori.nama }}</td>
-
-        <td>Rp {{ menu.harga_per_porsi }}</td>
-
-        <td>
-          {% if menu.status_stok == 'tersedia' %}
-            <span class="badge selesai">Tersedia</span>
-          {% else %}
-            <span class="badge batal">Kosong</span>
+            <span class="badge batal">Nonaktif</span>
           {% endif %}
         </td>
 
         <td style="text-align:right; white-space:nowrap;">
-          <a href="{% url 'administrator:menu_edit' menu.pk %}" class="btn btn-ghost" style="padding:6px 12px; font-size:13px;">Edit</a>
+          <a href="{% url 'administrator:kategori_edit' kategori.pk %}" class="btn btn-ghost" style="padding:6px 12px; font-size:13px;">Edit</a>
 
-          <a href="{% url 'administrator:menu_hapus' menu.pk %}"
+          <a href="{% url 'administrator:kategori_hapus' kategori.pk %}"
              class="btn btn-ghost"
              style="padding:6px 12px; font-size:13px; color: var(--danger);"
-             onclick="return confirm('Yakin ingin menghapus menu ini?')">Hapus</a>
+             onclick="return confirm('Yakin ingin menghapus kategori menu ini?')">Hapus</a>
         </td>
       </tr>
       {% endfor %}
@@ -193,28 +144,23 @@
   {% if page_obj.has_other_pages %}
   <div style="display:flex; justify-content:space-between; align-items:center; margin-top:18px; flex-wrap:wrap; gap:12px;">
     <span style="font-size:13px; color: var(--text-muted);">
-      Menampilkan {{ page_obj.start_index }}-{{ page_obj.end_index }} dari {{ page_obj.paginator.count }} menu.
+      Menampilkan {{ page_obj.start_index }}-{{ page_obj.end_index }} dari {{ page_obj.paginator.count }} kategori menu.
     </span>
 
     <div style="display:flex; gap:8px;">
       {% if page_obj.has_previous %}
-        <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}{% if kategori %}&kategori={{ kategori }}{% endif %}" class="btn btn-ghost" style="padding:6px 14px;">&larr;</a>
+        <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}" class="btn btn-ghost" style="padding:6px 14px;">&larr;</a>
       {% endif %}
       <span style="align-self:center; font-size:13px; color: var(--text-muted);">Halaman {{ page_obj.number }} dari {{ page_obj.paginator.num_pages }}</span>
       {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}&q={{ q }}{% if kategori %}&kategori={{ kategori }}{% endif %}" class="btn btn-ghost" style="padding:6px 14px;">&rarr;</a>
+        <a href="?page={{ page_obj.next_page_number }}&q={{ q }}" class="btn btn-ghost" style="padding:6px 14px;">&rarr;</a>
       {% endif %}
     </div>
   </div>
   {% endif %}
 
   {% else %}
-  <div style="text-align:center; padding:50px 20px;">
-    <img src="{% static 'images/empty-menu.svg' %}" width="140" alt="Belum ada menu">
-    <h3 style="margin-top:18px;">Belum Ada Menu</h3>
-    <p style="color: var(--text-muted); margin-bottom:20px;">Silakan tambahkan menu catering terlebih dahulu.</p>
-    <a href="{% url 'administrator:menu_tambah' %}" class="btn btn-primary">Tambah Menu</a>
-  </div>
+  <p style="color: var(--text-muted); text-align:center; padding: 30px 0;">Belum ada Kategori Menu.</p>
   {% endif %}
 </div>
 {% endblock %}

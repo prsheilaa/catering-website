@@ -582,18 +582,28 @@ def laporan_download_excel(request):
 
 @role_required('administrator')
 def pengaturan(request):
-    setting, created = Pengaturan.objects.get_or_create(pk=1)
+
+    data = Pengaturan.objects.first()
+
+    if not data:
+        data = Pengaturan.objects.create()
 
     if request.method == "POST":
-        form = PengaturanForm(request.POST, instance=setting)
+        form = PengaturanForm(
+            request.POST,
+            request.FILES,
+            instance=data
+        )
 
         if form.is_valid():
             form.save()
-            messages.success(request, "Pengaturan berhasil disimpan.")
-            return redirect("administrator:pengaturan")
+
+            messages.success(request, "Pengaturan berhasil disimpan")
+
+            return redirect("pengaturan")
 
     else:
-        form = PengaturanForm(instance=setting)
+        form = PengaturanForm(instance=data)
 
     return render(
         request,
@@ -602,48 +612,3 @@ def pengaturan(request):
             "form": form
         }
     )
-
-
-    workbook = Workbook()
-    worksheet = workbook.active
-
-    worksheet.title = "Laporan Catering"
-
-    worksheet.append([
-        "Kode Pesanan",
-        "Pelanggan",
-        "Menu",
-        "Jumlah Porsi",
-        "Total",
-        "Status",
-        "Tanggal"
-    ])
-
-    data = Pesanan.objects.select_related(
-        "pelanggan",
-        "menu"
-    )
-
-    for item in data:
-
-        worksheet.append([
-            item.kode_pesanan,
-            item.pelanggan.username,
-            item.menu.nama_paket,
-            item.jumlah_porsi,
-            float(item.total_harga),
-            item.get_status_display(),
-            item.created_at.strftime("%d-%m-%Y")
-        ])
-
-    response = HttpResponse(
-        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-
-    response[
-        "Content-Disposition"
-    ] = 'attachment; filename="laporan_catering.xlsx"'
-
-    workbook.save(response)
-
-    return response 

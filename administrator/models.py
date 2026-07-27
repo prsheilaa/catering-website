@@ -260,8 +260,44 @@ class Pembayaran(models.Model):
         return f"Pembayaran {self.pesanan.kode_pesanan} - {self.get_status_verifikasi_display()}"
     
 class Pengaturan(models.Model):
+    nama_catering = models.CharField(max_length=150)
+
+    whatsapp = models.CharField(max_length=20)
+
+    email = models.EmailField()
+
+    alamat = models.TextField()
+
     minimal_hari_pemesanan = models.PositiveIntegerField(default=3)
+
     maksimal_porsi_harian = models.PositiveIntegerField(default=1000)
 
+    nama_bank = models.CharField(
+        max_length=100,
+        default="BCA"
+    )
+
+    nomor_rekening = models.CharField(
+        max_length=30,
+        default="-"
+    )
+
+    atas_nama = models.CharField(
+        max_length=100,
+        default="-"
+    )
+
+    qris = models.ImageField(
+        upload_to="qris/",
+        blank=True,
+        null=True
+    )
+
+    logo = models.ImageField(
+        upload_to="logo/",
+        blank=True,
+        null=True
+    )
+
     def __str__(self):
-        return "Pengaturan Sistem"
+        return self.nama_catering
