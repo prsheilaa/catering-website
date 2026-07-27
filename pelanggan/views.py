@@ -4,6 +4,8 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.core.paginator import Paginator
 from django.http import HttpResponse
+from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from io import BytesIO
 
 from reportlab.lib.pagesizes import A4
@@ -15,7 +17,7 @@ from reportlab.lib.enums import TA_RIGHT, TA_CENTER
 
 from administrator.decorators import role_required
 from administrator.models import (
-    Menu, KategoriMenu, JenisCatering, Pesanan, Pembayaran, ItemPesanan,
+    Menu, KategoriMenu, JenisCatering, Pesanan, Pembayaran, ItemPesanan, PengaturanPemesanan,
     BANK_NAME, EWALLET_PROVIDER, EWALLET_NUMBER, EWALLET_ACCOUNT_NAME, QRIS_MERCHANT_NAME,
 )
 from .forms import RegistrasiPelangganForm, PembayaranForm
@@ -176,6 +178,28 @@ def buat_pesanan(request):
             messages.error(request, "Semua field wajib diisi.")
             return redirect('pelanggan:buat_pesanan')
 
+         # ----- VALIDASI JEDA WAKTU MINIMAL (H-) PEMESANAN -----
+        waktu_acara_dt = parse_datetime(waktu_acara)
+        if waktu_acara_dt is None:
+            messages.error(request, "Format waktu acara tidak valid.")
+            return redirect('pelanggan:buat_pesanan')
+        if timezone.is_naive(waktu_acara_dt):
+            waktu_acara_dt = timezone.make_aware(waktu_acara_dt, timezone.get_current_timezone())
+
+        pengaturan = PengaturanPemesanan.get_settings()
+        minimal_hari = pengaturan.get_minimal_hari()
+        batas_tercepat = pengaturan.batas_waktu_tercepat()
+
+        if waktu_acara_dt < batas_tercepat:
+            messages.error(
+                request,
+                f"Mohon maaf, saat ini kami membutuhkan waktu persiapan minimal H-{minimal_hari} "
+                f"({'karena banyak pesanan yang harus kami proses' if pengaturan.mode_otomatis else 'sesuai ketentuan yang berlaku'}). "
+                f"Silakan pilih waktu acara mulai {timezone.localtime(batas_tercepat).strftime('%d %b %Y, %H:%M')} atau setelahnya."
+            )
+            return redirect('pelanggan:buat_pesanan')
+        paket_valid = [nilai for nilai, _ in PAKET_PORSI_CHOICES]
+
         paket_valid = [nilai for nilai, _ in PAKET_PORSI_CHOICES]
         item_data = []  # akan diisi list (menu, jumlah_porsi)
 
@@ -206,7 +230,7 @@ def buat_pesanan(request):
             nama_pemesan=nama_pemesan,
             alamat=alamat,
             no_telepon=no_telepon,
-            waktu_acara=waktu_acara,
+            waktu_acara=waktu_acara_dt,
             jumlah_porsi=item_data[0][1],   # untuk kompatibilitas fitur lama
             catatan_tambahan=catatan_tambahan,
             total_harga=total_harga,
@@ -228,6 +252,10 @@ def buat_pesanan(request):
     except (TypeError, ValueError):
         preselect_menu_id = 0
 
+    pengaturan = PengaturanPemesanan.get_settings()
+    minimal_hari = pengaturan.get_minimal_hari()
+    batas_tercepat = pengaturan.batas_waktu_tercepat()
+
     return render(request, 'pelanggan/pesanan_form.html', {
         'kategori_list': KategoriMenu.objects.filter(is_active=True),
         'menu_tersedia': menu_tersedia,
@@ -235,8 +263,8 @@ def buat_pesanan(request):
         'paket_pilihan': PAKET_PORSI_CHOICES,
         'default_nama': request.user.get_full_name() or request.user.username,
         'default_telepon': request.user.no_telepon,
-        'default_alamat': request.user.alamat,
-        'preselect_menu_id': preselect_menu_id,
+        'minimal_hari_pemesanan': minimal_hari,
+        'batas_waktu_tercepat': timezone.localtime(batas_tercepat).strftime('%Y-%m-%dT%H:%M'),
     })
 
 # ==========================================================

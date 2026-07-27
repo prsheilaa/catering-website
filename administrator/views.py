@@ -16,13 +16,12 @@ from reportlab.platypus import Paragraph
 
 from .decorators import role_required
 
-from .models import Menu, KategoriMenu, JenisCatering, Pesanan, Pembayaran, Pengaturan
 from .forms import (MenuForm, KategoriMenuForm, JenisCateringForm, AkunForm, PengaturanForm)
 from .models import (
-    Menu, KategoriMenu, JenisCatering, Pesanan, Pembayaran,
+    Menu, KategoriMenu, JenisCatering, Pesanan, Pembayaran, PengaturanPemesanan,
     BANK_NAME, EWALLET_PROVIDER, EWALLET_NUMBER, QRIS_MERCHANT_NAME,
 )
-from .forms import MenuForm, KategoriMenuForm, JenisCateringForm, AkunForm
+from .forms import MenuForm, KategoriMenuForm, JenisCateringForm, AkunForm, PengaturanPemesananForm
 
 User = get_user_model()
 
@@ -580,35 +579,32 @@ def laporan_download_excel(request):
     # TODO: implementasi export Excel
     return redirect('administrator:laporan')
 
+# ==========================================================
+# PENGATURAN JEDA WAKTU PEMESANAN (Minimal H- Pemesanan)
+# ==========================================================
 @role_required('administrator')
-def pengaturan(request):
+def pengaturan_pemesanan(request):
+    """
+    Halaman admin untuk mengatur minimal jeda waktu (H-) pemesanan.
+    - Mode manual: admin set langsung minimal H- berapa hari.
+    - Mode otomatis: minimal H- naik sendiri kalau pesanan aktif lagi banyak,
+      supaya dapur tidak kewalahan menerima pesanan mendadak.
+    """
+    pengaturan = PengaturanPemesanan.get_settings()
+    jumlah_aktif = PengaturanPemesanan.jumlah_pesanan_aktif()
 
-    data = Pengaturan.objects.first()
-
-    if not data:
-        data = Pengaturan.objects.create()
-
-    if request.method == "POST":
-        form = PengaturanForm(
-            request.POST,
-            request.FILES,
-            instance=data
-        )
-
+    if request.method == 'POST':
+        form = PengaturanPemesananForm(request.POST, instance=pengaturan)
         if form.is_valid():
             form.save()
-
-            messages.success(request, "Pengaturan berhasil disimpan")
-
-            return redirect("pengaturan")
-
+            messages.success(request, "Pengaturan jeda waktu pemesanan berhasil disimpan.")
+            return redirect('administrator:pengaturan_pemesanan')
     else:
-        form = PengaturanForm(instance=data)
+        form = PengaturanPemesananForm(instance=pengaturan)
 
-    return render(
-        request,
-        "administrator/pengaturan.html",
-        {
-            "form": form
-        }
-    )
+    context = {
+        'form': form,
+        'jumlah_aktif': jumlah_aktif,
+        'minimal_hari_berlaku': pengaturan.get_minimal_hari(jumlah_aktif),
+    }
+    return render(request, 'administrator/pengaturan_pemesanan.html', context)

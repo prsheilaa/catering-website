@@ -18,42 +18,6 @@ Administrator
 Administrator
 {% endblock %}
 
-{% block sidebar_nav %}
-
-<div class="nav-group">
-
-    <a href="{% url 'administrator:dashboard' %}" class="nav-link">
-        Dashboard
-    </a>
-
-    <a href="{% url 'administrator:kategori_list' %}" class="nav-link active">
-        Kategori
-    </a>
-
-    <a href="{% url 'administrator:jenis_catering_list' %}" class="nav-link">
-        Jenis Catering
-    </a>
-
-    <a href="{% url 'administrator:menu_list' %}" class="nav-link">
-        Menu Catering
-    </a>
-
-    <a href="{% url 'administrator:akun_list' %}" class="nav-link">
-        Kelola Akun
-    </a>
-
-    <a href="{% url 'administrator:transaksi_list' %}" class="nav-link">
-        Transaksi
-    </a>
-
-    <a href="{% url 'administrator:laporan' %}" class="nav-link">
-        Laporan
-    </a>
-
-</div>
-
-{% endblock %}
-
 {% block content %}
 
 <div class="panel">

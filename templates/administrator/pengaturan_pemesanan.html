@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Pengaturan Pemesanan | Meja Nusantara{% endblock %}
+
+{% block brand_sub %}Administrator{% endblock %}
+{% block topbar_role %}Administrator{% endblock %}
+{% block topbar_title %}Pengaturan Pemesanan{% endblock %}
+
+{% block content %}
+<div class="panel">
+    <div class="section-header">
+        <div>
+            <h2>Jeda Waktu Minimal Pemesanan</h2>
+            <p style="color:#7b6f61;">
+                Atur berapa hari (H-) sebelum acara pelanggan wajib memesan, agar dapur tidak
+                kewalahan menerima pesanan mendadak saat sedang ramai.
+            </p>
+        </div>
+    </div>
+
+    <div class="status-box">
+        <div class="status-item">
+            <span class="status-label">Pesanan aktif saat ini</span>
+            <span class="status-value">{{ jumlah_aktif }} pesanan</span>
+            <span class="status-hint">Menunggu pembayaran + sedang diproses</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">Minimal H- yang berlaku sekarang</span>
+            <span class="status-value">H-{{ minimal_hari_berlaku }}</span>
+            <span class="status-hint">Otomatis dipakai untuk validasi form pemesanan pelanggan</span>
+        </div>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="field-toggle">
+            {{ form.mode_otomatis }}
+            <label for="{{ form.mode_otomatis.id_for_label }}" style="margin:0;">
+                Aktifkan mode otomatis (jeda waktu naik sendiri saat pesanan sedang banyak)
+            </label>
+        </div>
+        {% if form.mode_otomatis.errors %}<div class="error">{{ form.mode_otomatis.errors }}</div>{% endif %}
+
+        <div class="form-grid">
+
+            <div class="form-group">
+                <label>Minimal H- Normal (mode manual / kondisi sepi)</label>
+                {{ form.minimal_hari_manual }}
+                <span class="hint">Contoh: isi 3 = pesanan wajib masuk minimal 3 hari sebelum acara.</span>
+                {% if form.minimal_hari_manual.errors %}<div class="error">{{ form.minimal_hari_manual.errors }}</div>{% endif %}
+            </div>
+
+            <div class="form-group full-width">
+                <hr style="border:none; border-top:1px dashed #d9c7b3; margin:6px 0 14px;">
+                <strong style="color:#5c4033;">Aturan mode otomatis (dipakai hanya jika mode otomatis diaktifkan)</strong>
+            </div>
+
+            <div class="form-group">
+                <label>Ambang batas "Sedang Ramai" (jumlah pesanan aktif)</label>
+                {{ form.batas_pesanan_sedang }}
+                {% if form.batas_pesanan_sedang.errors %}<div class="error">{{ form.batas_pesanan_sedang.errors }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label>Minimal H- saat "Sedang Ramai"</label>
+                {{ form.hari_saat_sedang }}
+                {% if form.hari_saat_sedang.errors %}<div class="error">{{ form.hari_saat_sedang.errors }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label>Ambang batas "Padat / Kewalahan" (jumlah pesanan aktif)</label>
+                {{ form.batas_pesanan_padat }}
+                {% if form.batas_pesanan_padat.errors %}<div class="error">{{ form.batas_pesanan_padat.errors }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label>Minimal H- saat "Padat / Kewalahan"</label>
+                {{ form.hari_saat_padat }}
+                {% if form.hari_saat_padat.errors %}<div class="error">{{ form.hari_saat_padat.errors }}</div>{% endif %}
+            </div>
+
+            <div class="form-group full-width">
+                <div class="info-box">
+                    Contoh cara kerja: jika pesanan aktif &lt; {{ form.batas_pesanan_sedang.value|default:"batas sedang" }},
+                    minimal H- memakai nilai "H- Normal". Begitu pesanan aktif mencapai batas "Sedang Ramai", minimal
+                    H- otomatis naik. Begitu mencapai batas "Padat", minimal H- naik lagi ke nilai paling panjang.
+                </div>
+            </div>
+
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:30px;">
+            <button type="submit" class="btn btn-primary">Simpan Pengaturan</button>
+        </div>
+    </form>
+</div>
+<style>
+.form-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:25px; margin-top:10px; }
+.full-width{ grid-column:1/3; }
+.form-group{ display:flex; flex-direction:column; }
+.form-group label{ font-weight:600; margin-bottom:8px; color:#5c4033; }
+.form-group input, .form-group select{
+    padding:12px; border:1px solid #d9c7b3; border-radius:10px; font-size:15px; background:#fff;
+}
+.form-group input:focus{ outline:none; border-color:#8B5E3C; box-shadow:0 0 0 3px rgba(139,94,60,.15); }
+.hint{ font-size:12.5px; color:#8a7a68; margin-top:6px; }
+.error{ margin-top:5px; color:#d32f2f; font-size:13px; }
+.field-toggle{ display:flex; align-items:center; gap:10px; margin:18px 0 6px; }
+.field-toggle input[type="checkbox"]{ width:18px; height:18px; }
+.btn{ padding:11px 22px; border:none; border-radius:10px; font-weight:600; text-decoration:none; cursor:pointer; transition:.3s; }
+.btn-primary{ box-shadow: 0 10px 22px -10px rgba(176,24,61,0.5); }
+.btn-primary:hover{ background:#6f472d; }
+
+.status-box{
+    display:grid; grid-template-columns:repeat(2,1fr); gap:16px;
+    margin:18px 0 26px;
+}
+.status-item{
+    background:#F4EFE9; border:1px solid #e6dccb; border-radius:12px; padding:16px 18px;
+    display:flex; flex-direction:column; gap:4px;
+}
+.status-label{ font-size:13px; color:#7b6f61; }
+.status-value{ font-size:22px; font-weight:700; color:#5c4033; }
+.status-hint{ font-size:12px; color:#9c8f7c; }
+
+.info-box{
+    background:#fbf6ee; border:1px dashed #d9c7b3; border-radius:10px;
+    padding:12px 14px; font-size:13px; color:#6f5f4d; line-height:1.5;
+}
+
+@media(max-width:768px){
+    .form-grid{ grid-template-columns:1fr; }
+    .full-width{ grid-column:auto; }
+    .status-box{ grid-template-columns:1fr; }
+}
+</style>
+{% endblock %}

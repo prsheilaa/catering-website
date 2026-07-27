@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from .models import PengaturanPemesanan
 
 from .models import (
     User,
@@ -108,3 +109,5 @@ class PembayaranAdmin(admin.ModelAdmin):
     search_fields = ('pesanan__kode_pesanan',)
     readonly_fields = ('created_at',)
     autocomplete_fields = ('pesanan', 'diverifikasi_oleh')
+
+# administrator/admin.py

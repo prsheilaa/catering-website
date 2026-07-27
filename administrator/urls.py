@@ -49,15 +49,14 @@ urlpatterns = [
     path('laporan/download/pdf/', views.laporan_download_pdf, name='laporan_pdf'),
     path('laporan/download/excel/', views.laporan_download_excel, name='laporan_excel'),
 
-
-    #Pengaturan
-    path('pengaturan/', views.pengaturan, name='pengaturan'),
-
     #Riwayat Pesanan
     path("riwayat-pesanan/",views.riwayat_pesanan,name="riwayat_pesanan",),
 
     #Menu Pelanggan
     path("menu/<int:pk>/",views.menu_detail,name="menu_detail",),
+
+    # Pengaturan Jeda Waktu Pemesanan
+    path('pengaturan-pemesanan/', views.pengaturan_pemesanan, name='pengaturan_pemesanan'),
     
 
 ]

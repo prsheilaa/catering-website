@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator
+from django.utils import timezone
 
 BANK_NAME = "Bank Nusantara Sejahtera"
 BANK_VA_PREFIX = "8807"
@@ -259,45 +260,103 @@ class Pembayaran(models.Model):
     def __str__(self):
         return f"Pembayaran {self.pesanan.kode_pesanan} - {self.get_status_verifikasi_display()}"
     
-class Pengaturan(models.Model):
-    nama_catering = models.CharField(max_length=150)
+# ==========================================================
+# PENGATURAN JEDA WAKTU PEMESANAN (Minimal H- Pemesanan)
+# ==========================================================
+class PengaturanPemesanan(models.Model):
+    """
+    Pengaturan minimal jeda waktu (H-) antara tanggal pesan dan waktu acara.
 
-    whatsapp = models.CharField(max_length=20)
+    - Mode manual: admin menentukan langsung minimal H- berapa hari.
+    - Mode otomatis: minimal H- menyesuaikan jumlah pesanan aktif saat itu
+      (menunggu_pembayaran + diproses). Semakin banyak pesanan aktif,
+      semakin panjang jeda waktu minimal yang diberlakukan, supaya dapur
+      tidak kewalahan menerima pesanan mendadak.
 
-    email = models.EmailField()
+    Disimpan sebagai singleton (selalu pk=1) agar mudah diatur dari 1 halaman.
+    """
 
-    alamat = models.TextField()
-
-    minimal_hari_pemesanan = models.PositiveIntegerField(default=3)
-
-    maksimal_porsi_harian = models.PositiveIntegerField(default=1000)
-
-    nama_bank = models.CharField(
-        max_length=100,
-        default="BCA"
+    mode_otomatis = models.BooleanField(
+        default=False,
+        help_text="Jika aktif, minimal H- pemesanan otomatis menyesuaikan jumlah pesanan aktif."
     )
 
-    nomor_rekening = models.CharField(
-        max_length=30,
-        default="-"
+    minimal_hari_manual = models.PositiveIntegerField(
+        default=3,
+        validators=[MinValueValidator(0)],
+        help_text="Minimal H- pemesanan yang dipakai saat mode otomatis dimatikan. Contoh: 3 = pesanan minimal 3 hari sebelum acara."
     )
 
-    atas_nama = models.CharField(
-        max_length=100,
-        default="-"
+    # ----- Ambang batas untuk mode otomatis -----
+    batas_pesanan_sedang = models.PositiveIntegerField(
+        default=10,
+        help_text="Jika jumlah pesanan aktif mencapai angka ini, minimal H- dinaikkan ke 'H- saat sedang ramai'."
+    )
+    hari_saat_sedang = models.PositiveIntegerField(
+        default=5,
+        validators=[MinValueValidator(0)],
+        help_text="Minimal H- pemesanan saat jumlah pesanan aktif tergolong sedang ramai."
     )
 
-    qris = models.ImageField(
-        upload_to="qris/",
-        blank=True,
-        null=True
+    batas_pesanan_padat = models.PositiveIntegerField(
+        default=20,
+        help_text="Jika jumlah pesanan aktif mencapai angka ini, minimal H- dinaikkan ke 'H- saat padat'."
+    )
+    hari_saat_padat = models.PositiveIntegerField(
+        default=7,
+        validators=[MinValueValidator(0)],
+        help_text="Minimal H- pemesanan saat jumlah pesanan aktif tergolong padat/kewalahan."
     )
 
-    logo = models.ImageField(
-        upload_to="logo/",
-        blank=True,
-        null=True
-    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Pengaturan Pemesanan"
+        verbose_name_plural = "Pengaturan Pemesanan"
 
     def __str__(self):
-        return self.nama_catering
+        return "Pengaturan Jeda Waktu Pemesanan"
+
+    def save(self, *args, **kwargs):
+        # Singleton: paksa selalu pk=1 supaya hanya ada 1 baris pengaturan.
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def get_settings(cls):
+        """Ambil (atau buat default jika belum ada) baris pengaturan singleton."""
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+    @staticmethod
+    def jumlah_pesanan_aktif():
+        """Jumlah pesanan yang masih membutuhkan kapasitas dapur saat ini."""
+        return Pesanan.objects.filter(
+            status__in=[
+                Pesanan.StatusPesanan.MENUNGGU_PEMBAYARAN,
+                Pesanan.StatusPesanan.DIPROSES,
+            ]
+        ).count()
+
+    def get_minimal_hari(self, jumlah_aktif=None):
+        """
+        Hitung minimal H- pemesanan yang berlaku saat ini.
+        Jika mode_otomatis mati -> pakai minimal_hari_manual.
+        Jika mode_otomatis aktif -> naik berjenjang sesuai jumlah pesanan aktif.
+        """
+        if not self.mode_otomatis:
+            return self.minimal_hari_manual
+
+        if jumlah_aktif is None:
+            jumlah_aktif = self.jumlah_pesanan_aktif()
+
+        if jumlah_aktif >= self.batas_pesanan_padat:
+            return self.hari_saat_padat
+        if jumlah_aktif >= self.batas_pesanan_sedang:
+            return self.hari_saat_sedang
+        return self.minimal_hari_manual
+
+    def batas_waktu_tercepat(self, jumlah_aktif=None):
+        """Waktu acara paling cepat yang masih boleh dipesan sekarang."""
+        minimal_hari = self.get_minimal_hari(jumlah_aktif)
+        return timezone.now() + timezone.timedelta(days=minimal_hari)

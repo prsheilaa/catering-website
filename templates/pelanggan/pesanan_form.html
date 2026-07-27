@@ -25,6 +25,11 @@
   </div>
 </div>
 
+<div style="background:#fbf6ee; border:1px dashed #d9c7b3; border-radius:12px; padding:14px 18px; margin-bottom:20px; color:#6f5f4d; font-size:14px;">
+  ⏳ Pemesanan saat ini minimal <strong>H-{{ minimal_hari_pemesanan }}</strong> sebelum waktu acara.
+  Jeda waktu ini dapat memanjang bila jumlah pesanan yang sedang berjalan cukup banyak, agar dapur kami tetap bisa menyiapkan pesanan Anda dengan baik.
+</div>
+
 <form method="POST" id="form-pesanan">
   {% csrf_token %}
   <div class="order-layout">
@@ -117,7 +122,11 @@
         <div class="field-row" style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
           <div class="field">
             <label>Waktu Acara</label>
-            <input type="datetime-local" name="waktu_acara" required>
+            <input type="datetime-local" name="waktu_acara" min="{{ batas_waktu_tercepat }}" required>
+            <small style="display:block; margin-top:6px; color:#8a7a68;">
+              Minimal pemesanan H-{{ minimal_hari_pemesanan }} sebelum acara
+              (jeda waktu dapat berubah menyesuaikan jumlah pesanan yang sedang berjalan).
+            </small>
           </div>
           <div class="field">
             <label>Catatan Tambahan</label>

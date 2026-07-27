@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 
-from .models import Menu, KategoriMenu, JenisCatering, Pengaturan
+from .models import Menu, KategoriMenu, JenisCatering, PengaturanPemesanan
 
 User = get_user_model()
 
@@ -33,7 +33,7 @@ class MenuForm(forms.ModelForm):
         
 class PengaturanForm(forms.ModelForm):
     class Meta:
-        model = Pengaturan
+        model = PengaturanPemesanan
         fields = "__all__"
 
 
@@ -107,21 +107,46 @@ class AkunForm(forms.ModelForm):
             user.save()
         return user
     
-class PengaturanForm(forms.ModelForm):
-
+class PengaturanPemesananForm(forms.ModelForm):
+    """
+    Form pengaturan minimal jeda waktu (H-) pemesanan.
+    Bisa manual (nilai H- tetap) atau otomatis (naik sesuai kepadatan pesanan aktif).
+    """
     class Meta:
-        model = Pengaturan
-
+        model = PengaturanPemesanan
         fields = [
-            "nama_catering",
-            "whatsapp",
-            "email",
-            "alamat",
-            "minimal_hari_pemesanan",
-            "maksimal_porsi_harian",
-            "nama_bank",
-            "nomor_rekening",
-            "atas_nama",
-            "qris",
-            "logo",
+            'mode_otomatis',
+            'minimal_hari_manual',
+            'batas_pesanan_sedang',
+            'hari_saat_sedang',
+            'batas_pesanan_padat',
+            'hari_saat_padat',
         ]
+
+    def clean(self):
+        cleaned = super().clean()
+        batas_sedang = cleaned.get('batas_pesanan_sedang')
+        batas_padat = cleaned.get('batas_pesanan_padat')
+        hari_manual = cleaned.get('minimal_hari_manual')
+        hari_sedang = cleaned.get('hari_saat_sedang')
+        hari_padat = cleaned.get('hari_saat_padat')
+
+        if batas_sedang is not None and batas_padat is not None and batas_padat <= batas_sedang:
+            self.add_error(
+                'batas_pesanan_padat',
+                "Ambang batas 'padat' harus lebih besar dari ambang batas 'sedang'."
+            )
+
+        if hari_manual is not None and hari_sedang is not None and hari_sedang < hari_manual:
+            self.add_error(
+                'hari_saat_sedang',
+                "Minimal H- saat sedang ramai sebaiknya tidak lebih kecil dari H- normal."
+            )
+
+        if hari_sedang is not None and hari_padat is not None and hari_padat < hari_sedang:
+            self.add_error(
+                'hari_saat_padat',
+                "Minimal H- saat padat sebaiknya tidak lebih kecil dari H- saat sedang ramai."
+            )
+
+        return cleaned

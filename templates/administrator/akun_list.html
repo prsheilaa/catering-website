@@ -4,56 +4,6 @@
 {% block topbar_role %}Administrator{% endblock %}
 {% block topbar_title %}Kelola Akun{% endblock %}
 
-{% block sidebar_nav %}
-
-<div class="nav-group">
-    <div class="nav-label">Ringkasan</div>
-
-    <a class="nav-link" href="{% url 'administrator:dashboard' %}">
-        Dashboard
-    </a>
-</div>
-
-<div class="nav-group">
-    <div class="nav-label">Katalog</div>
-
-    <a class="nav-link" href="{% url 'administrator:menu_list' %}">
-        Menu
-    </a>
-
-    <a class="nav-link" href="{% url 'administrator:kategori_list' %}">
-        Kategori
-    </a>
-
-    <a class="nav-link" href="{% url 'administrator:jenis_catering_list' %}">
-        Jenis Catering
-    </a>
-</div>
-
-<div class="nav-group">
-    <div class="nav-label">Operasional</div>
-
-    <a class="nav-link active" href="{% url 'administrator:akun_list' %}">
-        Kelola Akun
-    </a>
-
-    <a class="nav-link" href="{% url 'administrator:transaksi_list' %}">
-        Transaksi
-    </a>
-
-    <a class="nav-link" href="{% url 'administrator:laporan' %}">
-        Laporan
-    </a>
-
-    <a class="nav-link" href="{% url 'administrator:pengaturan' %}">
-
-        Pengaturan
-
-    </a>
-</div>
-
-{% endblock %}
-
 {% block content %}
 <div class="page-head">
 
