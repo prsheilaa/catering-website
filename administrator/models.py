@@ -58,6 +58,24 @@ class User(AbstractUser):
             self.is_approved = True
         super().save(*args, **kwargs)
 
+    @property
+    def jumlah_dp(self):
+        """
+        Menghitung nominal DP berdasarkan pengaturan admin
+        """
+        try:
+            setting = PengaturanPembayaran.objects.first()
+
+            if setting:
+                persen = setting.persentase_dp
+            else:
+                persen = 50
+
+            return self.total_harga * persen / 100
+
+        except:
+            return 0
+    
     # Di dalam class Pesanan, cari method save() (baris ±189), TAMBAHKAN setelahnya:
     @property
     def virtual_account_number(self):
@@ -193,6 +211,24 @@ class Pesanan(models.Model):
         if not self.total_harga:
             self.total_harga = self.menu.harga_per_porsi * self.jumlah_porsi
         super().save(*args, **kwargs)
+    @property
+    def jumlah_dp(self):
+
+        from django.apps import apps
+
+        PengaturanPembayaran = apps.get_model(
+            'administrator',
+            'PengaturanPembayaran'
+        )
+
+        setting = PengaturanPembayaran.objects.first()
+
+        if setting:
+            persen = setting.persentase_dp
+        else:
+            persen = 50
+
+        return self.total_harga * persen / 100
 
 class ItemPesanan(models.Model):
     """
@@ -256,8 +292,38 @@ class Pembayaran(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        pesanan = self.pesanan
+
+        if self.status_verifikasi == "valid":
+            pesanan.status = "diproses"
+
+        elif self.status_verifikasi == "tidak_valid":
+            pesanan.status = "menunggu_pembayaran"
+
+        pesanan.save(update_fields=["status"])
+        
     class Meta:
         verbose_name_plural = "Pembayaran"
 
     def __str__(self):
         return f"Pembayaran {self.pesanan.kode_pesanan} - {self.get_status_verifikasi_display()}"
+# ==========================================================
+# PENGATURAN PEMBAYARAN DP
+# ==========================================================
+
+class PengaturanPembayaran(models.Model):
+
+    persentase_dp = models.PositiveIntegerField(
+        default=50,
+        verbose_name="Persentase DP (%)"
+    )
+
+    class Meta:
+        verbose_name = "Pengaturan Pembayaran"
+        verbose_name_plural = "Pengaturan Pembayaran"
+
+    def __str__(self):
+        return f"DP {self.persentase_dp}%"
