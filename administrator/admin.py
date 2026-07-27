@@ -8,6 +8,7 @@ from .models import (
     Menu,
     Pesanan,
     Pembayaran,
+    PengaturanPembayaran,
 )
 
 
@@ -108,3 +109,11 @@ class PembayaranAdmin(admin.ModelAdmin):
     search_fields = ('pesanan__kode_pesanan',)
     readonly_fields = ('created_at',)
     autocomplete_fields = ('pesanan', 'diverifikasi_oleh')
+# ==========================================================
+# PENGATURAN PEMBAYARAN DP
+# ==========================================================
+@admin.register(PengaturanPembayaran)
+class PengaturanPembayaranAdmin(admin.ModelAdmin):
+    list_display = (
+        'persentase_dp',
+    )
