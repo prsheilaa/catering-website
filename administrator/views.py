@@ -3,22 +3,27 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db.models import Q
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from django.http import HttpResponse
 from django.utils import timezone
 from openpyxl import Workbook
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import Paragraph
+from django.core.exceptions import ValidationError
+import datetime
 
+# decorators
 from .decorators import role_required
-from .models import Menu, KategoriMenu, JenisCatering, Pesanan, Pembayaran
-from .forms import MenuForm, KategoriMenuForm, JenisCateringForm, AkunForm
 
+# models
+from .models import Menu, KategoriMenu, JenisCatering, Pesanan, Pembayaran, PengaturanJeda
+
+# forms
+from .forms import MenuForm, KategoriMenuForm, JenisCateringForm, AkunForm, PesananForm
+
+# get user model
 User = get_user_model()
-
 
 # ==========================================================
 # DASHBOARD
@@ -99,6 +104,30 @@ def menu_detail(request, pk):
             "menu": menu,
         },
     )
+# ==========================================================
+# PEMESANAN PELANGGAN
+# ==========================================================
+def buat_pesanan(request):
+    if request.method == 'POST':
+        form = PesananForm(request.POST)
+        if form.is_valid():
+            pesanan = form.save(commit=False)
+
+            # otomatis hitung total harga
+            pesanan.total_harga = pesanan.menu.harga_per_porsi * pesanan.jumlah_porsi
+
+            # validasi jeda waktu sudah ada di PesananForm.clean_waktu_acara()
+
+            pesanan.save()
+            messages.success(request, f"Pesanan berhasil dibuat! Jumlah DP: Rp {pesanan.jumlah_dp}")
+            return redirect('dashboard_pelanggan')  # ganti dengan URL dashboard pelanggan
+        else:
+            messages.error(request, "Pesanan gagal dibuat, periksa form.")
+    else:
+        form = PesananForm()
+
+    return render(request, 'pesanan/buat_pesanan.html', {'form': form})
+
 # ==========================================================
 # RIWAYAT PESANAN PELANGGAN
 # ==========================================================

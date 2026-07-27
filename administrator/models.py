@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator
+from django.core.exceptions import ValidationError
+import datetime
+from django.conf import settings
 
 # TAMBAHKAN blok ini (baris 6-14), letakkan setelah 3 baris import paling atas:
 BANK_NAME = "Bank Nusantara Sejahtera"
@@ -179,6 +182,23 @@ class Pesanan(models.Model):
     menu = models.ForeignKey(Menu, on_delete=models.PROTECT, related_name='pesanan_list')
     jenis_catering = models.ForeignKey(JenisCatering, on_delete=models.PROTECT, related_name='pesanan_list')
 
+# ==========================================================
+# validasi jeda waktu
+# ==========================================================
+    def clean(self):
+        super().clean()
+
+        from .models import PengaturanJeda  # pastikan import di sini supaya tidak circular
+        import datetime
+
+        # ambil pengaturan dari admin, default 3 hari kalau belum ada
+        jeda = PengaturanJeda.objects.first()
+        minimal_hari = jeda.minimal_hari if jeda else 3
+
+        if self.waktu_acara < datetime.date.today() + datetime.timedelta(days=minimal_hari):
+            from django.core.exceptions import ValidationError
+            raise ValidationError(f"Minimal waktu tunggu adalah {minimal_hari} hari sebelum acara")
+
     # Detail form pemesanan
     nama_pemesan = models.CharField(max_length=150)
     alamat = models.TextField()
@@ -327,3 +347,22 @@ class PengaturanPembayaran(models.Model):
 
     def __str__(self):
         return f"DP {self.persentase_dp}%"
+# ==========================================================
+# PENGATURAN JEDA PEMESANAN
+# ==========================================================
+class PengaturanJeda(models.Model):
+    minimal_hari = models.PositiveIntegerField(
+        default=3,
+        verbose_name="Minimal Masa Tunggu (hari)"
+    )
+    deskripsi = models.TextField(
+        blank=True,
+        verbose_name="Deskripsi / Catatan"
+    )
+
+    class Meta:
+        verbose_name = "Pengaturan Jeda Pemesanan"
+        verbose_name_plural = "Pengaturan Jeda Pemesanan"
+
+    def __str__(self):
+        return f"Minimal {self.minimal_hari} hari"

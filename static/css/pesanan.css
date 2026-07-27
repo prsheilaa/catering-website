@@ -1,0 +1,91 @@
+/* =====================================
+   Pesanan Form - Card & Buttons Styling
+   ===================================== */
+.card {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 25px 30px;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.card h2 {
+    text-align: center;
+    color: #1E90FF;
+    margin-bottom: 25px;
+    font-weight: 700;
+}
+
+.card form p {
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+.card form input[type="text"],
+.card form input[type="number"],
+.card form input[type="date"],
+.card form input[type="email"],
+.card form textarea,
+.card form select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
+.card form textarea {
+    resize: vertical;
+}
+
+.card form button[type="submit"] {
+    width: 100%;
+    padding: 12px 0;
+    background-color: #1E90FF;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.card form button[type="submit"]:hover {
+    background-color: #1c7cd6;
+}
+
+.panel.msg-success,
+.panel.msg-error {
+    padding: 10px 15px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.panel.msg-success {
+    background-color: #e6f4ea;
+    color: #2f8f42;
+    border: 1px solid #2f8f42;
+}
+
+.panel.msg-error {
+    background-color: #fdecea;
+    color: #d32f2f;
+    border: 1px solid #d32f2f;
+}
+
+.dp-display {
+    margin-top: 15px;
+    font-weight: 600;
+    font-size: 15px;
+    text-align: right;
+    color: #1E90FF;
+}

@@ -5,6 +5,7 @@ app_name = 'administrator'
 
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
+    path('pesanan/buat/', views.buat_pesanan, name='buat_pesanan'),
 
     # Kategori Menu
     path('kategori/', views.kategori_list, name='kategori_list'),

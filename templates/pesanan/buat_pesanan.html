@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Buat Pesanan{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pesanan.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Buat Pesanan</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Pesan Sekarang</button>
+    </form>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="panel {% if message.tags == 'success' %}msg-success{% elif message.tags == 'error' %}msg-error{% endif %}">
+                <span>{{ message }}</span>
+            </div>
+        {% endfor %}
+    {% endif %}
+    {% if form.instance and form.instance.pk %}
+        <div class="dp-display">
+            Jumlah DP: Rp {{ form.instance.jumlah_dp|floatformat:0 }}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

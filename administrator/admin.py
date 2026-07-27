@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-
+from .models import PengaturanJeda
 from .models import (
     User,
     KategoriMenu,
@@ -117,3 +117,11 @@ class PengaturanPembayaranAdmin(admin.ModelAdmin):
     list_display = (
         'persentase_dp',
     )
+# ==========================================================
+# PENGATURAN JEDA PEMESANAN
+# ==========================================================
+@admin.register(PengaturanJeda)
+class PengaturanJedaAdmin(admin.ModelAdmin):
+    list_display = ("minimal_hari", "deskripsi")
+    list_editable = ("minimal_hari",)
+    list_display_links = ("deskripsi",)  # wajib kalau pakai list_editable

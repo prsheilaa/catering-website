@@ -2,8 +2,8 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
-
-from .models import Menu, KategoriMenu, JenisCatering
+from .models import Menu, KategoriMenu, JenisCatering, Pesanan, PengaturanJeda
+import datetime
 
 User = get_user_model()
 
@@ -101,3 +101,20 @@ class AkunForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+
+class PesananForm(forms.ModelForm):
+    class Meta:
+        model = Pesanan
+        fields = '__all__'
+        widgets = {
+            'waktu_acara': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+    def clean_waktu_acara(self):
+        waktu_acara = self.cleaned_data.get('waktu_acara')
+        jeda = PengaturanJeda.objects.first()
+        minimal_hari = jeda.minimal_hari if jeda else 3
+
+        if waktu_acara < datetime.date.today() + datetime.timedelta(days=minimal_hari):
+            raise forms.ValidationError(f"Minimal waktu tunggu adalah {minimal_hari} hari sebelum acara")
+        return waktu_acara
