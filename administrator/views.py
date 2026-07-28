@@ -9,6 +9,7 @@ from django.http import HttpResponse
 from django.utils import timezone
 from datetime import timedelta
 from openpyxl import Workbook
+from openpyxl.styles import Font
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
@@ -532,12 +533,51 @@ def laporan_download_pdf(request):
 
 @role_required('administrator')
 def laporan_download_excel(request):
-
+ 
     """
-    Placeholder export Excel. Nanti diisi pakai openpyxl.
+    Export laporan transaksi catering ke file Excel (.xlsx) memakai openpyxl.
+    Struktur kolom mengikuti versi PDF (laporan_download_pdf) supaya konsisten.
     """
-    # TODO: implementasi export Excel
-    return redirect('administrator:laporan')
+ 
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Laporan Catering"
+ 
+    headers = ["Kode", "Pelanggan", "Menu", "Porsi", "Total", "Status"]
+    ws.append(headers)
+ 
+    # Bikin header tebal biar gampang dibaca
+    for cell in ws[1]:
+        cell.font = Font(bold=True)
+ 
+    data = Pesanan.objects.select_related(
+        "pelanggan",
+        "menu"
+    )
+ 
+    for item in data:
+        ws.append([
+            item.kode_pesanan,
+            item.pelanggan.username,
+            item.menu.nama_paket,
+            item.jumlah_porsi,
+            float(item.total_harga),
+            item.get_status_display()
+        ])
+ 
+    # Lebarkan kolom otomatis sesuai isi terpanjang
+    for col_cells in ws.columns:
+        length = max(len(str(cell.value)) for cell in col_cells if cell.value is not None)
+        ws.column_dimensions[col_cells[0].column_letter].width = length + 4
+ 
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = 'attachment; filename="laporan_catering.xlsx"'
+ 
+    wb.save(response)
+ 
+    return response
 
 # ==========================================================
 # PENGATURAN JEDA WAKTU PEMESANAN (Minimal H- Pemesanan)
