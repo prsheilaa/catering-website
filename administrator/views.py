@@ -16,9 +16,9 @@ from reportlab.platypus import Paragraph
 
 from .decorators import role_required
 
-from .forms import (MenuForm, KategoriMenuForm, JenisCateringForm, AkunForm, PengaturanForm)
+from .forms import (MenuForm, KategoriMenuForm, JenisCateringForm, AkunForm, PengaturanPemesananForm, PengaturanDPForm)
 from .models import (
-    Menu, KategoriMenu, JenisCatering, Pesanan, Pembayaran, PengaturanPemesanan,
+    Menu, KategoriMenu, JenisCatering, Pesanan, Pembayaran, PengaturanPemesanan, PengaturanDP,
     BANK_NAME, EWALLET_PROVIDER, EWALLET_NUMBER, QRIS_MERCHANT_NAME,
 )
 from .forms import MenuForm, KategoriMenuForm, JenisCateringForm, AkunForm, PengaturanPemesananForm
@@ -329,8 +329,7 @@ def transaksi_list(request):
     status_filter = request.GET.get('status', '')
     q = request.GET.get('q', '').strip()
 
-    pesanan = Pesanan.objects.select_related('pelanggan', 'menu', 'pembayaran').order_by('-created_at')
-
+    pesanan = Pesanan.objects.select_related('pelanggan', 'menu').prefetch_related('pembayaran_list').order_by('-created_at')
     if status_filter:
         pesanan = pesanan.filter(status=status_filter)
     if q:
@@ -358,34 +357,23 @@ def transaksi_list(request):
 
 @role_required('administrator')
 def transaksi_detail(request, pk):
-
     pesanan = get_object_or_404(
-        Pesanan.objects.select_related(
-            'pelanggan',
-            'menu',
-            'pembayaran'
-        ),
+        Pesanan.objects.select_related('pelanggan', 'menu').prefetch_related('pembayaran_list'),
         pk=pk
     )
-    pembayaran = getattr(
-        pesanan,
-        'pembayaran',
-        None
-    )
-    return render(
-        request,
-        'administrator/transaksi_detail.html',
-        {
-            'pesanan': pesanan,
-            'pembayaran': pembayaran,
-            'status_choices': Pesanan.StatusPesanan.choices,
-            'status_verifikasi': Pembayaran.StatusVerifikasi.choices,
-            'bank_name': BANK_NAME,
-            'ewallet_provider': EWALLET_PROVIDER,
-            'ewallet_number': EWALLET_NUMBER,
-            'qris_merchant_name': QRIS_MERCHANT_NAME,
-        }
-    )
+    riwayat_pembayaran = pesanan.pembayaran_list.all().order_by('-created_at')
+    info_pembayaran = pesanan.pembayaran_yang_diperlukan()
+    return render(request, 'administrator/transaksi_detail.html', {
+        'pesanan': pesanan,
+        'riwayat_pembayaran': riwayat_pembayaran,
+        'info_pembayaran': info_pembayaran,
+        'status_choices': Pesanan.StatusPesanan.choices,
+        'status_verifikasi': Pembayaran.StatusVerifikasi.choices,
+        'bank_name': BANK_NAME,
+        'ewallet_provider': EWALLET_PROVIDER,
+        'ewallet_number': EWALLET_NUMBER,
+        'qris_merchant_name': QRIS_MERCHANT_NAME,
+    })
 
 @role_required('administrator')
 def transaksi_delete(request, pk):
@@ -414,34 +402,6 @@ def transaksi_update_status(request, pk):
     return redirect(
         "administrator:transaksi_detail",
         pk=pk
-    )
-
-@role_required('administrator')
-def verifikasi_pembayaran(request, pk):
-
-    pembayaran = get_object_or_404(Pembayaran, pk=pk)
-    if request.method == "POST":
-        status = request.POST.get("status")
-
-        pembayaran.status_verifikasi = status
-        pembayaran.diverifikasi_oleh = request.user
-        pembayaran.tanggal_verifikasi = timezone.now()
-        pembayaran.save()
-
-        if status == Pembayaran.StatusVerifikasi.VALID:
-            pembayaran.pesanan.status = Pesanan.StatusPesanan.DIPROSES
-
-        elif status == Pembayaran.StatusVerifikasi.TIDAK_VALID:
-            pembayaran.pesanan.status = Pesanan.StatusPesanan.MENUNGGU_PEMBAYARAN
-        pembayaran.pesanan.save()
-        messages.success(
-            request,
-            "Pembayaran berhasil diverifikasi."
-        )
-
-    return redirect(
-        "administrator:transaksi_detail",
-        pk=pembayaran.pesanan.id
     )
 
 # ==========================================================
@@ -583,28 +543,40 @@ def laporan_download_excel(request):
 # PENGATURAN JEDA WAKTU PEMESANAN (Minimal H- Pemesanan)
 # ==========================================================
 @role_required('administrator')
-def pengaturan_pemesanan(request):
+def pengaturan(request):
     """
-    Halaman admin untuk mengatur minimal jeda waktu (H-) pemesanan.
-    - Mode manual: admin set langsung minimal H- berapa hari.
-    - Mode otomatis: minimal H- naik sendiri kalau pesanan aktif lagi banyak,
-      supaya dapur tidak kewalahan menerima pesanan mendadak.
+    Halaman pengaturan gabungan untuk admin, berisi 2 bagian:
+    1. Jeda waktu minimal (H-) pemesanan — manual atau otomatis sesuai kepadatan.
+    2. Wajib DP (uang muka) — persentase yang wajib dibayar di muka.
+
+    Dua form dibedakan lewat prefix ('jeda' dan 'dp') supaya bisa disimpan
+    terpisah dalam satu halaman, satu tombol simpan per bagian.
     """
-    pengaturan = PengaturanPemesanan.get_settings()
+    pengaturan_jeda = PengaturanPemesanan.get_settings()
+    pengaturan_dp = PengaturanDP.get_settings()
     jumlah_aktif = PengaturanPemesanan.jumlah_pesanan_aktif()
 
-    if request.method == 'POST':
-        form = PengaturanPemesananForm(request.POST, instance=pengaturan)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Pengaturan jeda waktu pemesanan berhasil disimpan.")
-            return redirect('administrator:pengaturan_pemesanan')
-    else:
-        form = PengaturanPemesananForm(instance=pengaturan)
+    form_jeda = PengaturanPemesananForm(instance=pengaturan_jeda, prefix='jeda')
+    form_dp = PengaturanDPForm(instance=pengaturan_dp, prefix='dp')
 
-    context = {
-        'form': form,
+    if request.method == 'POST':
+        if 'simpan_jeda' in request.POST:
+            form_jeda = PengaturanPemesananForm(request.POST, instance=pengaturan_jeda, prefix='jeda')
+            if form_jeda.is_valid():
+                form_jeda.save()
+                messages.success(request, "Pengaturan jeda waktu pemesanan berhasil disimpan.")
+                return redirect('administrator:pengaturan')
+
+        elif 'simpan_dp' in request.POST:
+            form_dp = PengaturanDPForm(request.POST, instance=pengaturan_dp, prefix='dp')
+            if form_dp.is_valid():
+                form_dp.save()
+                messages.success(request, "Pengaturan DP berhasil disimpan.")
+                return redirect('administrator:pengaturan')
+
+    return render(request, 'administrator/pengaturan.html', {
+        'form_jeda': form_jeda,
+        'form_dp': form_dp,
         'jumlah_aktif': jumlah_aktif,
-        'minimal_hari_berlaku': pengaturan.get_minimal_hari(jumlah_aktif),
-    }
-    return render(request, 'administrator/pengaturan_pemesanan.html', context)
+        'minimal_hari_berlaku': pengaturan_jeda.get_minimal_hari(jumlah_aktif),
+    })

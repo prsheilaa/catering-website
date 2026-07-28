@@ -82,13 +82,25 @@ def verifikasi_pembayaran(request, pk):
 
             pesanan = pembayaran.pesanan
             if pembayaran.status_verifikasi == Pembayaran.StatusVerifikasi.VALID:
-                pesanan.status = Pesanan.StatusPesanan.DIPROSES
-                pesanan.diproses_oleh = request.user
-                messages.success(request, "Pembayaran valid. Status pesanan diubah menjadi Diproses.")
+                if pembayaran.jenis == Pembayaran.JenisPembayaran.DP:
+                    pesanan.status_pembayaran = Pesanan.StatusPembayaran.DP_TERVERIFIKASI
+                    pesanan.status = Pesanan.StatusPesanan.DIPROSES
+                    pesanan.diproses_oleh = request.user
+                    messages.success(request, "DP valid. Status pesanan diubah menjadi Diproses, menunggu pelunasan.")
+                else:
+                    pesanan.status_pembayaran = Pesanan.StatusPembayaran.LUNAS
+                    pesanan.status = Pesanan.StatusPesanan.DIPROSES
+                    pesanan.diproses_oleh = request.user
+                    messages.success(request, "Pembayaran valid. Pesanan lunas dan diproses.")
             elif pembayaran.status_verifikasi == Pembayaran.StatusVerifikasi.TIDAK_VALID:
-                pesanan.status = Pesanan.StatusPesanan.MENUNGGU_PEMBAYARAN
-                messages.warning(request, "Pembayaran tidak valid. Pelanggan diminta mengulang pembayaran.")
-            pesanan.save(update_fields=['status', 'diproses_oleh'])
+                if pembayaran.jenis == Pembayaran.JenisPembayaran.PELUNASAN:
+                    pesanan.status_pembayaran = Pesanan.StatusPembayaran.DP_TERVERIFIKASI
+                    messages.warning(request, "Pelunasan tidak valid. Pelanggan diminta mengunggah ulang pelunasan.")
+                else:
+                    pesanan.status_pembayaran = Pesanan.StatusPembayaran.BELUM_BAYAR
+                    pesanan.status = Pesanan.StatusPesanan.MENUNGGU_PEMBAYARAN
+                    messages.warning(request, "Pembayaran tidak valid. Pelanggan diminta mengulang pembayaran.")
+            pesanan.save(update_fields=['status', 'diproses_oleh', 'status_pembayaran'])
 
             return redirect('petugas:pembayaran_pending')
     else:

@@ -3,19 +3,6 @@
 {% block brand_sub %}Pelanggan{% endblock %}
 {% block topbar_title %}Riwayat Pesanan{% endblock %}
 
-{% block sidebar_nav %}
-<div class="nav-group">
-  <div class="nav-label">Ringkasan</div>
-  <a class="nav-link" href="{% url 'pelanggan:dashboard' %}">Dashboard</a>
-</div>
-<div class="nav-group">
-  <div class="nav-label">Katering</div>
-  <a class="nav-link" href="{% url 'pelanggan:menu_list' %}">Daftar Menu</a>
-  <a class="nav-link" href="{% url 'pelanggan:buat_pesanan' %}">Buat Pesanan</a>
-  <a class="nav-link active" href="{% url 'pelanggan:riwayat_pesanan' %}">Riwayat Pesanan</a>
-</div>
-{% endblock %}
-
 {% block content %}
 <div class="page-head">
   <div>

@@ -17,7 +17,7 @@ from reportlab.lib.enums import TA_RIGHT, TA_CENTER
 
 from administrator.decorators import role_required
 from administrator.models import (
-    Menu, KategoriMenu, JenisCatering, Pesanan, Pembayaran, ItemPesanan, PengaturanPemesanan,
+    Menu, KategoriMenu, JenisCatering, Pesanan, Pembayaran, ItemPesanan, PengaturanPemesanan, PengaturanDP,
     BANK_NAME, EWALLET_PROVIDER, EWALLET_NUMBER, EWALLET_ACCOUNT_NAME, QRIS_MERCHANT_NAME,
 )
 from .forms import RegistrasiPelangganForm, PembayaranForm
@@ -222,6 +222,9 @@ def buat_pesanan(request):
         # ----- HITUNG TOTAL HARGA OTOMATIS (dari semua menu yang dipilih) -----
         total_harga = sum(menu.harga_per_porsi * jumlah for menu, jumlah in item_data)
 
+        # ----- SNAPSHOT PENGATURAN DP SAAT INI -----
+        pengaturan_dp = PengaturanDP.get_settings()
+
         pesanan = Pesanan.objects.create(
             kode_pesanan=f"ORD-{request.user.id}-{Pesanan.objects.count() + 1:05d}",
             pelanggan=request.user,
@@ -234,6 +237,8 @@ def buat_pesanan(request):
             jumlah_porsi=item_data[0][1],   # untuk kompatibilitas fitur lama
             catatan_tambahan=catatan_tambahan,
             total_harga=total_harga,
+            wajib_dp=pengaturan_dp.wajib_dp,
+            persen_dp=pengaturan_dp.persen_dp if pengaturan_dp.wajib_dp else None,
         )
 
         for menu, jumlah in item_data:
@@ -274,24 +279,38 @@ def buat_pesanan(request):
 def upload_pembayaran(request, pesanan_id):
     pesanan = get_object_or_404(Pesanan, pk=pesanan_id, pelanggan=request.user)
 
-    if hasattr(pesanan, 'pembayaran'):
-        messages.info(request, "Anda sudah mengunggah bukti pembayaran untuk pesanan ini.")
+    info = pesanan.pembayaran_yang_diperlukan()
+
+    if info is None:
+        if pesanan.is_lunas:
+            messages.info(request, "Pesanan ini sudah lunas. Tidak perlu unggah pembayaran lagi.")
+        else:
+            messages.info(request, "Bukti pembayaran Anda sedang menunggu verifikasi petugas.")
         return redirect('pelanggan:detail_pesanan', pesanan_id=pesanan.id)
 
     if request.method == 'POST':
-        form = PembayaranForm(request.POST, request.FILES)
+        form = PembayaranForm(request.POST, request.FILES, jumlah_minimal=info['jumlah'])
         if form.is_valid():
             pembayaran = form.save(commit=False)
             pembayaran.pesanan = pesanan
+            pembayaran.jenis = info['jenis']
             pembayaran.save()
+
+            if info['jenis'] == Pembayaran.JenisPembayaran.DP:
+                pesanan.status_pembayaran = Pesanan.StatusPembayaran.DP_MENUNGGU_VERIFIKASI
+            else:
+                pesanan.status_pembayaran = Pesanan.StatusPembayaran.PELUNASAN_MENUNGGU_VERIFIKASI
+            pesanan.save(update_fields=['status_pembayaran'])
+
             messages.success(request, "Bukti pembayaran berhasil diunggah, menunggu verifikasi petugas.")
             return redirect('pelanggan:detail_pesanan', pesanan_id=pesanan.id)
     else:
-        form = PembayaranForm(initial={'jumlah_bayar': pesanan.total_harga})
+        form = PembayaranForm(initial={'jumlah_bayar': info['jumlah']}, jumlah_minimal=info['jumlah'])
 
     return render(request, 'pelanggan/upload_pembayaran.html', {
         'form': form,
         'pesanan': pesanan,
+        'info_pembayaran': info,
         'bank_name': BANK_NAME,
         'ewallet_provider': EWALLET_PROVIDER,
         'ewallet_number': EWALLET_NUMBER,
@@ -306,8 +325,8 @@ def upload_pembayaran(request, pesanan_id):
 @role_required('pelanggan')
 def riwayat_pesanan(request):
     pesanan_qs = Pesanan.objects.filter(pelanggan=request.user).select_related(
-        'menu', 'jenis_catering', 'pembayaran'
-    ).prefetch_related('item_list__menu').order_by('-created_at')
+        'menu', 'jenis_catering'
+    ).prefetch_related('item_list__menu', 'pembayaran_list').order_by('-created_at')
 
     status = request.GET.get('status')
     if status:
@@ -341,13 +360,17 @@ def riwayat_pesanan(request):
 @role_required('pelanggan')
 def detail_pesanan(request, pesanan_id):
     pesanan = get_object_or_404(
-        Pesanan.objects.select_related('menu', 'jenis_catering').prefetch_related('item_list__menu'),
+        Pesanan.objects.select_related('menu', 'jenis_catering').prefetch_related(
+            'item_list__menu', 'pembayaran_list'
+        ),
         pk=pesanan_id, pelanggan=request.user
     )
-    pembayaran = getattr(pesanan, 'pembayaran', None)
+    riwayat_pembayaran = pesanan.pembayaran_list.all().order_by('-created_at')
+    info_pembayaran = pesanan.pembayaran_yang_diperlukan()
     return render(request, 'pelanggan/detail_pesanan.html', {
         'pesanan': pesanan,
-        'pembayaran': pembayaran,
+        'riwayat_pembayaran': riwayat_pembayaran,
+        'info_pembayaran': info_pembayaran,
         'bank_name': BANK_NAME,
         'ewallet_provider': EWALLET_PROVIDER,
         'ewallet_number': EWALLET_NUMBER,
@@ -359,9 +382,12 @@ def detail_pesanan(request, pesanan_id):
 def unduh_struk(request, pesanan_id):
     """Membuat & mengunduh struk pesanan dalam bentuk PDF."""
     pesanan = get_object_or_404(
-        Pesanan.objects.select_related('menu', 'jenis_catering', 'pembayaran').prefetch_related('item_list__menu'),
+        Pesanan.objects.select_related('menu', 'jenis_catering').prefetch_related(
+            'item_list__menu', 'pembayaran_list'
+        ),
         pk=pesanan_id, pelanggan=request.user
     )
+    daftar_pembayaran = list(pesanan.pembayaran_list.all().order_by('created_at'))
     pembayaran = getattr(pesanan, 'pembayaran', None)
 
     buffer = BytesIO()
@@ -438,6 +464,8 @@ def unduh_struk(request, pesanan_id):
     story.append(item_table)
 
     total_data = [["Total Pembayaran", f"Rp{pesanan.total_harga:,.0f}".replace(',', '.')]]
+    if pesanan.wajib_dp:
+        total_data.append([f"DP ({pesanan.persen_dp}%)", f"Rp{pesanan.jumlah_dp:,.0f}".replace(',', '.')])
     total_table = Table(total_data, colWidths=[340, 105])
     total_table.setStyle(TableStyle([
         ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
@@ -450,6 +478,42 @@ def unduh_struk(request, pesanan_id):
     story.append(total_table)
 
     story.append(Paragraph("Informasi Pembayaran", styles['SectionHead']))
+    if daftar_pembayaran:
+        bayar_data = [["Jenis", "Metode", "Jumlah", "Status"]]
+        for p in daftar_pembayaran:
+            bayar_data.append([
+                p.get_jenis_display(),
+                p.get_metode_display(),
+                f"Rp{p.jumlah_bayar:,.0f}".replace(',', '.'),
+                p.get_status_verifikasi_display(),
+            ])
+        bayar_table = Table(bayar_data, colWidths=[110, 110, 110, 115])
+        bayar_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#241A10')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 9),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#E7DCC9')),
+            ('TOPPADDING', (0, 0), (-1, -1), 5),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+        ]))
+        story.append(bayar_table)
+        story.append(Spacer(1, 6))
+        story.append(Paragraph(
+            f"Total dibayar (terverifikasi): Rp{pesanan.total_dibayar:,.0f}".replace(',', '.') +
+            f" | Sisa: Rp{pesanan.sisa_bayar:,.0f}".replace(',', '.'),
+            styles['StrukSub']
+        ))
+    else:
+        bayar_data = [["Status", "Belum ada pembayaran tercatat untuk pesanan ini."]]
+        bayar_table = Table(bayar_data, colWidths=[110, 335])
+        bayar_table.setStyle(TableStyle([
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 9.5),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ]))
+        story.append(bayar_table)
     if pembayaran:
         metode = pembayaran.get_metode_display()
         if pembayaran.metode == 'transfer_bank':

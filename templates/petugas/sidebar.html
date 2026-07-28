@@ -1,0 +1,16 @@
+<div class="nav-group">
+  <div class="nav-label">Ringkasan</div>
+  <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %} " href="{% url 'petugas:dashboard' %}">Dashboard</a>
+</div>
+<div class="nav-group">
+  <div class="nav-label">Registrasi</div>
+  <a class="nav-link {% if request.resolver_match.url_name == 'pelanggan_pending' %}active{% endif %}" href="{% url 'petugas:pelanggan_pending' %}">Approval pelanggan</a>
+</div>
+<div class="nav-group">
+  <div class="nav-label">Pembayaran</div>
+  <a class="nav-link {% if request.resolver_match.url_name == 'pembayaran_pending' %}active{% endif %}" href="{% url 'petugas:pembayaran_pending' %}">Verifikasi pembayaran</a>
+</div>
+<div class="nav-group">
+  <div class="nav-label">Pesanan</div>
+  <a class="nav-link {% if request.resolver_match.url_name == 'pesanan_diproses' %}active{% endif %}" href="{% url 'petugas:pesanan_diproses' %}">Pesanan diproses</a>
+</div>

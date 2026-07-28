@@ -4,46 +4,6 @@
 {% block brand_sub %}Petugas{% endblock %}
 {% block topbar_role %}Operator{% endblock %}
 
-{% block sidebar_nav %}
-<div class="nav-group">
-    <div class="nav-label">Ringkasan</div>
-    <a class="nav-link" href="{% url 'petugas:dashboard' %}">
-        Dashboard
-    </a>
-</div>
-
-<div class="nav-group">
-    <div class="nav-label">Registrasi</div>
-    <a class="nav-link"
-       href="{% url 'petugas:pelanggan_pending' %}">
-        Approval Pelanggan
-    </a>
-</div>
-
-<div class="nav-group">
-    <div class="nav-label">Pembayaran</div>
-
-    <a class="nav-link"
-       href="{% url 'petugas:pembayaran_pending' %}">
-        Verifikasi Pembayaran
-    </a>
-
-    <a class="nav-link active"
-       href="{% url 'petugas:riwayat_pembayaran' %}">
-        Riwayat Pembayaran
-    </a>
-</div>
-
-<div class="nav-group">
-    <div class="nav-label">Pesanan</div>
-
-    <a class="nav-link"
-       href="{% url 'petugas:pesanan_diproses' %}">
-        Pesanan Diproses
-    </a>
-</div>
-{% endblock %}
-
 {% block content %}
 
 <div class="page-head">

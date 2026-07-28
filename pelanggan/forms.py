@@ -50,14 +50,23 @@ class PembayaranForm(forms.ModelForm):
         model = Pembayaran
         fields = ['metode', 'jumlah_bayar', 'bukti_bayar']
 
+    def __init__(self, *args, jumlah_minimal=None, **kwargs):
+        self.jumlah_minimal = jumlah_minimal
+        super().__init__(*args, **kwargs)
+
     def clean(self):
         cleaned_data = super().clean()
         metode = cleaned_data.get('metode')
         bukti_bayar = cleaned_data.get('bukti_bayar')
+        jumlah_bayar = cleaned_data.get('jumlah_bayar')
 
         if metode != Pembayaran.MetodePembayaran.TUNAI and not bukti_bayar:
-            self.add_error(
-                'bukti_bayar',
-                "Bukti pembayaran wajib diunggah untuk metode selain tunai."
-            )
+            self.add_error('bukti_bayar', "Bukti pembayaran wajib diunggah untuk metode selain tunai.")
+
+        if self.jumlah_minimal is not None and jumlah_bayar is not None:
+            if jumlah_bayar < self.jumlah_minimal:
+                self.add_error(
+                    'jumlah_bayar',
+                    f"Jumlah bayar minimal Rp{self.jumlah_minimal:,.0f}".replace(',', '.') + "."
+                )
         return cleaned_data

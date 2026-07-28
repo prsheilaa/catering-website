@@ -1,13 +1,15 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Pengaturan Pemesanan | Meja Nusantara{% endblock %}
+{% block title %}Pengaturan | Meja Nusantara{% endblock %}
 
 {% block brand_sub %}Administrator{% endblock %}
 {% block topbar_role %}Administrator{% endblock %}
-{% block topbar_title %}Pengaturan Pemesanan{% endblock %}
+{% block topbar_title %}Pengaturan{% endblock %}
 
 {% block content %}
+
+<!-- ================= BAGIAN 1: JEDA WAKTU PEMESANAN ================= -->
 <div class="panel">
     <div class="section-header">
         <div>
@@ -36,20 +38,20 @@
         {% csrf_token %}
 
         <div class="field-toggle">
-            {{ form.mode_otomatis }}
-            <label for="{{ form.mode_otomatis.id_for_label }}" style="margin:0;">
+            {{ form_jeda.mode_otomatis }}
+            <label for="{{ form_jeda.mode_otomatis.id_for_label }}" style="margin:0;">
                 Aktifkan mode otomatis (jeda waktu naik sendiri saat pesanan sedang banyak)
             </label>
         </div>
-        {% if form.mode_otomatis.errors %}<div class="error">{{ form.mode_otomatis.errors }}</div>{% endif %}
+        {% if form_jeda.mode_otomatis.errors %}<div class="error">{{ form_jeda.mode_otomatis.errors }}</div>{% endif %}
 
         <div class="form-grid">
 
             <div class="form-group">
                 <label>Minimal H- Normal (mode manual / kondisi sepi)</label>
-                {{ form.minimal_hari_manual }}
+                {{ form_jeda.minimal_hari_manual }}
                 <span class="hint">Contoh: isi 3 = pesanan wajib masuk minimal 3 hari sebelum acara.</span>
-                {% if form.minimal_hari_manual.errors %}<div class="error">{{ form.minimal_hari_manual.errors }}</div>{% endif %}
+                {% if form_jeda.minimal_hari_manual.errors %}<div class="error">{{ form_jeda.minimal_hari_manual.errors }}</div>{% endif %}
             </div>
 
             <div class="form-group full-width">
@@ -59,43 +61,85 @@
 
             <div class="form-group">
                 <label>Ambang batas "Sedang Ramai" (jumlah pesanan aktif)</label>
-                {{ form.batas_pesanan_sedang }}
-                {% if form.batas_pesanan_sedang.errors %}<div class="error">{{ form.batas_pesanan_sedang.errors }}</div>{% endif %}
+                {{ form_jeda.batas_pesanan_sedang }}
+                {% if form_jeda.batas_pesanan_sedang.errors %}<div class="error">{{ form_jeda.batas_pesanan_sedang.errors }}</div>{% endif %}
             </div>
 
             <div class="form-group">
                 <label>Minimal H- saat "Sedang Ramai"</label>
-                {{ form.hari_saat_sedang }}
-                {% if form.hari_saat_sedang.errors %}<div class="error">{{ form.hari_saat_sedang.errors }}</div>{% endif %}
+                {{ form_jeda.hari_saat_sedang }}
+                {% if form_jeda.hari_saat_sedang.errors %}<div class="error">{{ form_jeda.hari_saat_sedang.errors }}</div>{% endif %}
             </div>
 
             <div class="form-group">
                 <label>Ambang batas "Padat / Kewalahan" (jumlah pesanan aktif)</label>
-                {{ form.batas_pesanan_padat }}
-                {% if form.batas_pesanan_padat.errors %}<div class="error">{{ form.batas_pesanan_padat.errors }}</div>{% endif %}
+                {{ form_jeda.batas_pesanan_padat }}
+                {% if form_jeda.batas_pesanan_padat.errors %}<div class="error">{{ form_jeda.batas_pesanan_padat.errors }}</div>{% endif %}
             </div>
 
             <div class="form-group">
                 <label>Minimal H- saat "Padat / Kewalahan"</label>
-                {{ form.hari_saat_padat }}
-                {% if form.hari_saat_padat.errors %}<div class="error">{{ form.hari_saat_padat.errors }}</div>{% endif %}
-            </div>
-
-            <div class="form-group full-width">
-                <div class="info-box">
-                    Contoh cara kerja: jika pesanan aktif &lt; {{ form.batas_pesanan_sedang.value|default:"batas sedang" }},
-                    minimal H- memakai nilai "H- Normal". Begitu pesanan aktif mencapai batas "Sedang Ramai", minimal
-                    H- otomatis naik. Begitu mencapai batas "Padat", minimal H- naik lagi ke nilai paling panjang.
-                </div>
+                {{ form_jeda.hari_saat_padat }}
+                {% if form_jeda.hari_saat_padat.errors %}<div class="error">{{ form_jeda.hari_saat_padat.errors }}</div>{% endif %}
             </div>
 
         </div>
 
         <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:30px;">
-            <button type="submit" class="btn btn-primary">Simpan Pengaturan</button>
+            <button type="submit" name="simpan_jeda" class="btn btn-primary">Simpan Jeda Waktu</button>
         </div>
     </form>
 </div>
+
+<br>
+
+<!-- ================= BAGIAN 2: PEMBAYARAN DP ================= -->
+<div class="panel">
+    <div class="section-header">
+        <div>
+            <h2>Pembayaran DP (Uang Muka)</h2>
+            <p style="color:#7b6f61;">
+                Jika diaktifkan, pelanggan wajib membayar sebagian dari total harga (DP) terlebih dahulu
+                sebelum pesanan mulai diproses dapur, lalu melunasi sisanya kemudian. DP maupun pelunasan
+                bisa dibayar via metode online (transfer bank, e-wallet, QRIS) maupun offline (tunai).
+            </p>
+        </div>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="field-toggle">
+            {{ form_dp.wajib_dp }}
+            <label for="{{ form_dp.wajib_dp.id_for_label }}" style="margin:0;">
+                {{ form_dp.fields.wajib_dp.label }}
+            </label>
+        </div>
+        {% if form_dp.wajib_dp.errors %}<div class="error">{{ form_dp.wajib_dp.errors }}</div>{% endif %}
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label>{{ form_dp.fields.persen_dp.label }}</label>
+                {{ form_dp.persen_dp }}
+                <span class="hint">Contoh: isi 50 = pelanggan wajib membayar 50% dari total harga sebagai DP, sisanya dilunasi kemudian.</span>
+                {% if form_dp.persen_dp.errors %}<div class="error">{{ form_dp.persen_dp.errors }}</div>{% endif %}
+            </div>
+
+            <div class="form-group full-width">
+                <div class="info-box">
+                    Pengaturan ini hanya berlaku untuk pesanan yang <strong>baru dibuat setelah disimpan</strong>.
+                    Pesanan yang sudah ada tidak akan berubah aturan pembayarannya, supaya adil bagi pelanggan
+                    yang sudah terlanjur memesan dengan ketentuan sebelumnya.
+                </div>
+            </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:30px;">
+            <button type="submit" name="simpan_dp" class="btn btn-primary">Simpan Pengaturan DP</button>
+        </div>
+    </form>
+</div>
+
 <style>
 .form-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:25px; margin-top:10px; }
 .full-width{ grid-column:1/3; }
@@ -110,7 +154,7 @@
 .field-toggle{ display:flex; align-items:center; gap:10px; margin:18px 0 6px; }
 .field-toggle input[type="checkbox"]{ width:18px; height:18px; }
 .btn{ padding:11px 22px; border:none; border-radius:10px; font-weight:600; text-decoration:none; cursor:pointer; transition:.3s; }
-.btn-primary{ box-shadow: 0 10px 22px -10px rgba(176,24,61,0.5); }
+.btn-primary{ background:#8B5E3C; color:white; }
 .btn-primary:hover{ background:#6f472d; }
 
 .status-box{

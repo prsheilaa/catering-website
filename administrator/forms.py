@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 
-from .models import Menu, KategoriMenu, JenisCatering, PengaturanPemesanan
+from .models import Menu, KategoriMenu, JenisCatering, PengaturanPemesanan, PengaturanDP
 
 User = get_user_model()
 
@@ -150,3 +150,17 @@ class PengaturanPemesananForm(forms.ModelForm):
             )
 
         return cleaned
+
+class PengaturanDPForm(forms.ModelForm):
+    """
+    Form pengaturan wajib DP (uang muka) untuk admin.
+    - wajib_dp: saklar on/off.
+    - persen_dp: persentase yang wajib dibayar di muka (default 50%), bebas diubah admin.
+    """
+    class Meta:
+        model = PengaturanDP
+        fields = ['wajib_dp', 'persen_dp']
+        labels = {
+            'wajib_dp': 'Wajibkan DP untuk pesanan baru',
+            'persen_dp': 'Persentase DP (%)',
+        }

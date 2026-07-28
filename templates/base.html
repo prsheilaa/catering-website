@@ -17,12 +17,16 @@
   <aside class="sidebar">
     <div class="brand">
         <div class="brand-mark">Meja Nusantara</div>
-        <div class="brand-sub">
-            {% block brand_sub %}Panel{% endblock %}
-        </div>
-    </div>
+</div>
 
+{% if request.user.role == "administrator" %}
     {% include "administrator/sidebar.html" %}
+{% elif request.user.role == "petugas" %}
+    {% include "petugas/sidebar.html" %}
+{% elif request.user.role == "pelanggan" %}
+    {% include "pelanggan/sidebar.html" %}
+
+{% endif %}
 
     <div class="sidebar-bottom">
         <form method="post" action="{% url 'pelanggan:logout' %}"

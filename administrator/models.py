@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 
 BANK_NAME = "Bank Nusantara Sejahtera"
@@ -149,6 +149,16 @@ class Pesanan(models.Model):
         DIPROSES = 'diproses', 'Diproses'
         SELESAI = 'selesai', 'Selesai'
         DIBATALKAN = 'dibatalkan', 'Dibatalkan'
+    class StatusPembayaran(models.TextChoices):
+            """
+            Status pembayaran terpisah dari status pesanan, karena pembayaran
+            bisa bertahap: DP dulu, baru pelunasan (jika DP diwajibkan admin).
+            """
+            BELUM_BAYAR = 'belum_bayar', 'Belum Bayar'
+            DP_MENUNGGU_VERIFIKASI = 'dp_menunggu_verifikasi', 'DP Menunggu Verifikasi'
+            DP_TERVERIFIKASI = 'dp_terverifikasi', 'DP Terverifikasi (Menunggu Pelunasan)'
+            PELUNASAN_MENUNGGU_VERIFIKASI = 'pelunasan_menunggu_verifikasi', 'Menunggu Verifikasi'
+            LUNAS = 'lunas', 'Lunas'
 
     kode_pesanan = models.CharField(max_length=30, unique=True, editable=False)
 
@@ -171,6 +181,17 @@ class Pesanan(models.Model):
     status = models.CharField(
         max_length=30, choices=StatusPesanan.choices, default=StatusPesanan.MENUNGGU_PEMBAYARAN
     )
+    wajib_dp = models.BooleanField(
+        default=False,
+        help_text="Snapshot: apakah pesanan ini wajib DP (diambil dari pengaturan saat pesanan dibuat)."
+    )
+    persen_dp = models.PositiveIntegerField(
+        null=True, blank=True,
+        help_text="Snapshot persentase DP yang berlaku untuk pesanan ini (jika wajib_dp=True)."
+    )
+    status_pembayaran = models.CharField(
+        max_length=40, choices=StatusPembayaran.choices, default=StatusPembayaran.BELUM_BAYAR
+    )
 
     diproses_oleh = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True,
@@ -179,6 +200,17 @@ class Pesanan(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class StatusPembayaran(models.TextChoices):
+        """
+        Status pembayaran terpisah dari status pesanan, karena pembayaran
+        bisa bertahap: DP dulu, baru pelunasan (jika DP diwajibkan admin).
+        """
+        BELUM_BAYAR = 'belum_bayar', 'Belum Bayar'
+        DP_MENUNGGU_VERIFIKASI = 'dp_menunggu_verifikasi', 'DP Menunggu Verifikasi'
+        DP_TERVERIFIKASI = 'dp_terverifikasi', 'DP Terverifikasi (Menunggu Pelunasan)'
+        PELUNASAN_MENUNGGU_VERIFIKASI = 'pelunasan_menunggu_verifikasi', 'Menunggu Verifikasi'
+        LUNAS = 'lunas', 'Lunas'
 
     class Meta:
         verbose_name_plural = "Pesanan"
@@ -193,7 +225,49 @@ class Pesanan(models.Model):
         super().save(*args, **kwargs)
     @property
     def virtual_account_number(self):
-                                                                                                                return f"{BANK_VA_PREFIX}{self.id:010d}"
+        return f"{BANK_VA_PREFIX}{self.id:010d}"
+
+    # ----- Perhitungan DP & sisa pembayaran -----
+    @property
+    def jumlah_dp(self):
+        """Nominal DP yang wajib dibayar (jika wajib_dp aktif untuk pesanan ini)."""
+        if not self.wajib_dp or not self.persen_dp:
+            return self.total_harga
+        return (self.total_harga * self.persen_dp) / 100
+
+    @property
+    def total_dibayar(self):
+        """Total nominal yang sudah dibayar & dinyatakan VALID oleh petugas/admin."""
+        valid = self.pembayaran_list.filter(status_verifikasi=Pembayaran.StatusVerifikasi.VALID)
+        return sum((p.jumlah_bayar for p in valid), start=0) if valid.exists() else 0
+
+    @property
+    def sisa_bayar(self):
+        sisa = self.total_harga - self.total_dibayar
+        return sisa if sisa > 0 else 0
+
+    @property
+    def is_lunas(self):
+        return self.status_pembayaran == self.StatusPembayaran.LUNAS
+
+    @property
+    def pembayaran_terbaru(self):
+        """Riwayat pembayaran paling akhir (DP atau pelunasan), untuk tampilan ringkas."""
+        return self.pembayaran_list.order_by('-created_at').first()
+
+    def pembayaran_yang_diperlukan(self):
+        """
+        Menentukan pembayaran apa yang sedang dibutuhkan pelanggan saat ini.
+        Return dict {'jenis', 'label', 'jumlah'} atau None jika tidak ada
+        pembayaran yang perlu diunggah saat ini (sudah lunas / sedang diverifikasi).
+        """
+        if self.status_pembayaran == self.StatusPembayaran.BELUM_BAYAR:
+            if self.wajib_dp:
+                return {'jenis': Pembayaran.JenisPembayaran.DP, 'label': f'DP {self.persen_dp}%', 'jumlah': self.jumlah_dp}
+            return {'jenis': Pembayaran.JenisPembayaran.PENUH, 'label': 'Pembayaran Penuh', 'jumlah': self.total_harga}
+        if self.status_pembayaran == self.StatusPembayaran.DP_TERVERIFIKASI:
+            return {'jenis': Pembayaran.JenisPembayaran.PELUNASAN, 'label': 'Pelunasan', 'jumlah': self.sisa_bayar}
+        return None
 
 class ItemPesanan(models.Model):
     """
@@ -231,12 +305,21 @@ class Pembayaran(models.Model):
         QRIS = 'qris', 'QRIS'
         TUNAI = 'tunai', 'Tunai'
 
+    class JenisPembayaran(models.TextChoices):
+        DP = 'dp', 'DP (Uang Muka)'
+        PELUNASAN = 'pelunasan', 'Pelunasan'
+        PENUH = 'penuh', 'Bayar Penuh'
+
     class StatusVerifikasi(models.TextChoices):
         MENUNGGU = 'menunggu', 'Menunggu Verifikasi'
         VALID = 'valid', 'Valid'
         TIDAK_VALID = 'tidak_valid', 'Tidak Valid'
 
-    pesanan = models.OneToOneField(Pesanan, on_delete=models.CASCADE, related_name='pembayaran')
+    pesanan = models.ForeignKey(Pesanan, on_delete=models.CASCADE, related_name='pembayaran_list')
+
+    jenis = models.CharField(
+        max_length=20, choices=JenisPembayaran.choices, default=JenisPembayaran.PENUH
+    )
 
     metode = models.CharField(max_length=20, choices=MetodePembayaran.choices)
     jumlah_bayar = models.DecimalField(max_digits=14, decimal_places=2)
@@ -256,6 +339,7 @@ class Pembayaran(models.Model):
 
     class Meta:
         verbose_name_plural = "Pembayaran"
+        ordering = ['created_at']
 
     def __str__(self):
         return f"Pembayaran {self.pesanan.kode_pesanan} - {self.get_status_verifikasi_display()}"
@@ -360,3 +444,45 @@ class PengaturanPemesanan(models.Model):
         """Waktu acara paling cepat yang masih boleh dipesan sekarang."""
         minimal_hari = self.get_minimal_hari(jumlah_aktif)
         return timezone.now() + timezone.timedelta(days=minimal_hari)
+
+    # ==========================================================
+# PENGATURAN PEMBAYARAN DP (Uang Muka)
+# ==========================================================
+class PengaturanDP(models.Model):
+    """
+    Pengaturan wajib DP untuk pemesanan.
+    Jika aktif, pelanggan wajib membayar sebagian (persentase yang diatur admin)
+    dari total harga sebelum pesanan diproses, baru melunasi sisanya kemudian.
+    DP maupun pelunasan bisa dibayar via metode online (transfer/e-wallet/QRIS)
+    maupun offline (tunai) — memakai metode pembayaran yang sama seperti biasa.
+
+    Disimpan sebagai singleton (selalu pk=1).
+    """
+
+    wajib_dp = models.BooleanField(
+        default=False,
+        help_text="Jika aktif, pelanggan wajib membayar DP sebelum pesanan diproses petugas."
+    )
+    persen_dp = models.PositiveIntegerField(
+        default=50,
+        validators=[MinValueValidator(1), MaxValueValidator(100)],
+        help_text="Persentase DP dari total harga pesanan. Contoh: 50 = DP minimal 50% dari total."
+    )
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Pengaturan DP"
+        verbose_name_plural = "Pengaturan DP"
+
+    def __str__(self):
+        return f"Pengaturan DP ({'Aktif' if self.wajib_dp else 'Nonaktif'} - {self.persen_dp}%)"
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def get_settings(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj

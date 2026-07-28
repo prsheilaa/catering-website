@@ -3,25 +3,6 @@
 {% block brand_sub %}petugas{% endblock %}
 {% block topbar_title %}Approval Pelanggan{% endblock %}
 
-{% block sidebar_nav %}
-<div class="nav-group">
-  <div class="nav-label">Ringkasan</div>
-  <a class="nav-link" href="{% url 'petugas:dashboard' %}">Dashboard</a>
-</div>
-<div class="nav-group">
-  <div class="nav-label">Registrasi</div>
-  <a class="nav-link active" href="{% url 'petugas:pelanggan_pending' %}">Approval pelanggan</a>
-</div>
-<div class="nav-group">
-  <div class="nav-label">Pembayaran</div>
-  <a class="nav-link" href="{% url 'petugas:pembayaran_pending' %}">Verifikasi pembayaran</a>
-</div>
-<div class="nav-group">
-  <div class="nav-label">Pesanan</div>
-  <a class="nav-link" href="{% url 'petugas:pesanan_diproses' %}">Pesanan diproses</a>
-</div>
-{% endblock %}
-
 {% block content %}
 <h1>Approval Registrasi Pelanggan</h1>
 <p style="color: var(--text-muted); margin-top: -8px; margin-bottom: 24px;">

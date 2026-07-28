@@ -41,9 +41,6 @@ urlpatterns = [
     # Hapus transaksi
     path('transaksi/<int:pk>/hapus/',views.transaksi_delete,name='transaksi_hapus'),
 
-    # Verifikasi pembayaran
-    path('pembayaran/<int:pk>/verifikasi/',views.verifikasi_pembayaran,name='verifikasi_pembayaran'),
-
     # Laporan
     path('laporan/', views.laporan, name='laporan'),
     path('laporan/download/pdf/', views.laporan_download_pdf, name='laporan_pdf'),
@@ -55,8 +52,7 @@ urlpatterns = [
     #Menu Pelanggan
     path("menu/<int:pk>/",views.menu_detail,name="menu_detail",),
 
-    # Pengaturan Jeda Waktu Pemesanan
-    path('pengaturan-pemesanan/', views.pengaturan_pemesanan, name='pengaturan_pemesanan'),
-    
+    # Pengaturan (Jeda Waktu Pemesanan + DP dalam 1 halaman)
+    path('pengaturan/', views.pengaturan, name='pengaturan'), 
 
 ]
