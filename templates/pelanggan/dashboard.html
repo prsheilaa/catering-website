@@ -10,11 +10,11 @@
 <div class="greeting-banner">
   <div class="greeting-banner-text">
     <h1>Halo, {{ request.user.first_name|default:request.user.username }}</h1>
-    <p>Selamat datang kembali di Meja Nusantara. Yuk pesan katering untuk acara Anda berikutnya.</p>
+    <p>Selamat datang kembali di Meja Nusantara. Yuk pesan catering untuk acara Anda berikutnya.</p>
     <a href="{% url 'pelanggan:buat_pesanan' %}" class="btn btn-gold">+ Buat Pesanan Baru</a>
   </div>
   <div class="greeting-banner-image">
-    <img src="{% static 'images/banner-food.jpg' %}" alt="Menu katering Meja Nusantara">
+    <img src="{% static 'images/banner-food.jpg' %}" alt="Menu catering Meja Nusantara">
   </div>
 </div>
 

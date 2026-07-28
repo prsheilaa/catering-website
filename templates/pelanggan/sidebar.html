@@ -3,7 +3,7 @@
   <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'pelanggan:dashboard' %}">Dashboard</a>
 </div>
 <div class="nav-group">
-  <div class="nav-label">Katering</div>
+  <div class="nav-label">Catering</div>
   <a class="nav-link {% if request.resolver_match.url_name == 'menu_list' %}active{% endif %}" href="{% url 'pelanggan:menu_list' %}">Daftar Menu</a>
   <a class="nav-link {% if request.resolver_match.url_name == 'buat_pesanan' %}active{% endif %}" href="{% url 'pelanggan:buat_pesanan' %}">Buat Pesanan</a>
   <a class="nav-link {% if request.resolver_match.url_name == 'riwayat_pesanan' %}active{% endif %}" href="{% url 'pelanggan:riwayat_pesanan' %}">Riwayat Pesanan</a>

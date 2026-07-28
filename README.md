@@ -14,21 +14,21 @@ registrasi pelanggan, verifikasi pembayaran, dan pemrosesan pesanan.
 | Lisa Aprilia Pramysheila  | [2421400107] |       prsheilaa       |
 |      Nur Hidayati         | [2421400146] |     nurhidayati146    |
 |     Tatiatun Sadiah       | [2421400111] |   tatiatunsadiah-bit  |
-|  Naylah Zakiyatur Rohmah  | [2421400107] | NaylahZakiyaturRohmah |
+|  Naylah Zakiyatur Rohmah  | [2421400107] |    mechanathaliaa     |
 |  Zulfiana Naila Rofikoh   | [2421400078] | zulfiananailarofikoh  |
 
 ## Pembagian Tugas
 
 1. Lisa Aprilia Pramysheila (Project Leader)
-Setup awal proyek Django (struktur project & apps), desain UI/UX login & dashboard, pengembangan modul pemesanan & riwayat pemesanan pelanggan, pengembangan fitur opsi/metode pembayaran, serta penggabungan (merge) pekerjaan seluruh anggota ke branch utama.
+Setup awal proyek Django (struktur project & apps), desain UI/UX login & dashboard, pengembangan modul pemesanan & riwayat pemesanan pelanggan, pengembangan fitur opsi/metode pembayaran, serta penggabungan (merge) pekerjaan seluruh anggota ke branch utama, pengembangan fitur pengaturan di administrator.
 2. Nur Hidayati
-Pengembangan modul CRUD Administrator, Kelola kategori menu, jenis catering, dan menu catering,Tampilan filter verdasarkan kategori/jenis
+Pengembangan modul CRUD Administrator, Kelola kategori menu, jenis catering, dan menu catering,Tampilan filter berdasarkan kategori/jenis
 3. Tatiatun Sadiah
 Pengembangan modul pembayaran pada sisi petugas, Membuat halaman verifikasi pembayaran, Membuat halaman Riwayat pembayaran
 4. Naylah Zakiyatur Rohmah
 Membuat laporan penjualan di administrator
 Membuat transaksi di administrator
-Menbahkan navbar dan footer
+Menbahkan  footer
 testing
 5. Zulfiana
 Membuat daftar menu pada sisi pelanggan
@@ -50,9 +50,11 @@ Membuatkan detail menu
 - Registrasi & login (dengan persetujuan petugas)
 - Jelajahi katalog menu dengan filter kategori
 - Buat pesanan multi-menu dengan ringkasan harga otomatis
+- melakukan pembayaran dengan DP
 - Upload bukti pembayaran (Transfer Bank/VA, E-Wallet, QRIS, atau Tunai)
 - Riwayat pesanan dengan filter status dan detail tujuan pembayaran
 - Unduh struk pesanan dalam format PDF
+- kembali ke halaman riwayat pesanan untuk melakukan pelunasan
 
 **Petugas**
 - Approval registrasi pelanggan baru

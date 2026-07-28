@@ -168,13 +168,13 @@ def buat_pesanan(request):
             return redirect('pelanggan:buat_pesanan')
 
         jenis_catering_id = request.POST.get('jenis_catering')
-        nama_pemesan = request.POST.get('nama_pemesan', '').strip()
+        nama_pemesan = request.user.get_full_name() or request.user.username
         alamat = request.POST.get('alamat', '').strip()
-        no_telepon = request.POST.get('no_telepon', '').strip()
+        no_telepon = request.user.no_telepon
         waktu_acara = request.POST.get('waktu_acara')
         catatan_tambahan = request.POST.get('catatan_tambahan', '').strip()
 
-        if not all([jenis_catering_id, nama_pemesan, alamat, no_telepon, waktu_acara]):
+        if not all([jenis_catering_id, alamat, waktu_acara]):
             messages.error(request, "Semua field wajib diisi.")
             return redirect('pelanggan:buat_pesanan')
 
