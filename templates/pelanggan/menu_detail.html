@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load rupiah %}
 {% block title %}{{ menu.nama_paket }} — Meja Nusantara{% endblock %}
 {% block brand_sub %}Pelanggan{% endblock %}
 {% block topbar_title %}Detail Menu{% endblock %}
@@ -45,7 +46,7 @@
       {% endif %}
 
       <div class="menu-detail-price">
-        Rp{{ menu.harga_per_porsi|floatformat:0 }} <span>/ porsi</span>
+        {{ menu.harga_per_porsi|rupiah }} <span>/ porsi</span>
       </div>
 
       <p style="color: var(--text-dark); line-height: 1.7;">
@@ -59,7 +60,7 @@
         </div>
         <div class="spec-row">
           <span class="spec-row-label">Harga per porsi</span>
-          <span class="spec-row-value">Rp{{ menu.harga_per_porsi|floatformat:0 }}</span>
+          <span class="spec-row-value">{{ menu.harga_per_porsi|rupiah }}</span>
         </div>
         <div class="spec-row">
           <span class="spec-row-label">Status stok</span>
@@ -93,7 +94,7 @@
       <div class="reco-card-body">
         <div class="reco-card-cat">{{ m.kategori.nama }}</div>
         <div class="reco-card-name">{{ m.nama_paket }}</div>
-        <div class="reco-card-price">Rp{{ m.harga_per_porsi|floatformat:0 }} / porsi</div>
+        <div class="reco-card-price">{{ m.harga_per_porsi|rupiah }} / porsi</div>
       </div>
     </a>
     {% endfor %}

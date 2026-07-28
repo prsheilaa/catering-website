@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load rupiah %}
 {% block title %}Riwayat Pesanan — Meja Nusantara{% endblock %}
 {% block brand_sub %}Pelanggan{% endblock %}
 {% block topbar_title %}Riwayat Pesanan{% endblock %}
@@ -31,7 +32,7 @@
         <div class="order-card-code mono">Pesanan #{{ p.kode_pesanan }}</div>
         <div class="order-card-date">{{ p.created_at|date:"d M Y, H:i" }}</div>
       </div>
-      <div class="order-card-status">
+      <div class="order-card-status" style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
         {% if p.status == 'menunggu_pembayaran' %}
           <span class="badge menunggu">Menunggu Pembayaran</span>
         {% elif p.status == 'diproses' %}
@@ -41,28 +42,33 @@
         {% else %}
           <span class="badge batal">Dibatalkan</span>
         {% endif %}
+
+        {% if p.status != 'dibatalkan' %}
+          {% if p.status_pembayaran == 'dp_terverifikasi' %}
+            <span class="badge bayar-dp">Sudah DP</span>
+          {% elif p.status_pembayaran == 'lunas' %}
+            <span class="badge bayar-lunas">Lunas</span>
+          {% elif p.status_pembayaran == 'dp_menunggu_verifikasi' or p.status_pembayaran == 'pelunasan_menunggu_verifikasi' %}
+            <span class="badge bayar-proses">Menunggu Verifikasi</span>
+          {% endif %}
+        {% endif %}
       </div>
     </div>
 
     <div class="order-card-meta">Jenis catering: <strong>{{ p.jenis_catering.nama }}</strong></div>
-    <div class="order-card-meta">Total pembayaran: <strong>Rp{{ p.total_harga|floatformat:0 }}</strong></div>
+    <div class="order-card-meta">Total pembayaran: <strong>{{ p.total_harga|rupiah }}</strong></div>
 
-    {% if p.pembayaran %}
+    {% if p.pembayaran_terbaru %}
     <div class="payment-info-mini">
       <div class="payment-info-mini-method">
-        <span class="pill-tag">{{ p.pembayaran.get_metode_display }}</span>
-        {% if p.pembayaran.metode == 'transfer_bank' %}
-          <span>VA <span class="mono">{{ p.virtual_account_number }}</span> — {{ bank_name }}</span>
-        {% elif p.pembayaran.metode == 'e_wallet' %}
-          <span>{{ ewallet_provider }} <span class="mono">{{ ewallet_number }}</span></span>
-        {% elif p.pembayaran.metode == 'qris' %}
-          <span>{{ qris_merchant_name }}</span>
-        {% else %}
-          <span>Dibayar tunai di tempat</span>
-        {% endif %}
+        <span class="pill-tag">{{ p.pembayaran_terbaru.get_jenis_display }}</span>
+        <span class="pill-tag">{{ p.pembayaran_terbaru.get_metode_display }}</span>
+        <span class="badge {% if p.pembayaran_terbaru.status_verifikasi == 'valid' %}selesai{% elif p.pembayaran_terbaru.status_verifikasi == 'tidak_valid' %}batal{% else %}menunggu{% endif %}">
+          {{ p.pembayaran_terbaru.get_status_verifikasi_display }}
+        </span>
       </div>
-      {% if p.pembayaran.metode != 'tunai' and p.pembayaran.bukti_bayar %}
-        <a href="{{ p.pembayaran.bukti_bayar.url }}" target="_blank" rel="noopener" class="payment-info-mini-link">Lihat bukti bayar ›</a>
+      {% if p.pembayaran_terbaru.metode != 'tunai' and p.pembayaran_terbaru.bukti_bayar %}
+        <a href="{{ p.pembayaran_terbaru.bukti_bayar.url }}" target="_blank" rel="noopener" class="payment-info-mini-link">Lihat bukti bayar ›</a>
       {% endif %}
     </div>
     {% elif p.status == 'menunggu_pembayaran' %}
@@ -71,6 +77,10 @@
         <span class="pill-tag">Belum dibayar</span>
       </div>
     </div>
+    {% endif %}
+
+    {% if p.wajib_dp and p.status != 'dibatalkan' %}
+    <div class="order-card-meta">Sisa yang harus dilunasi: <strong>{{ p.sisa_bayar|rupiah }}</strong></div>
     {% endif %}
 
     <div class="order-card-products">
@@ -83,15 +93,15 @@
     </div>
 
     <div class="order-card-actions">
-      {% if p.status == 'menunggu_pembayaran' %}
-        {% if not p.pembayaran %}
-          <a href="{% url 'pelanggan:upload_pembayaran' p.id %}" class="btn btn-success">Bayar Sekarang</a>
-        {% endif %}
-        <form method="post" action="{% url 'pelanggan:batalkan_pesanan' p.id %}" onsubmit="return confirm('Batalkan pesanan {{ p.kode_pesanan }}?');">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-danger-outline">Batalkan</button>
-        </form>
-      {% elif p.status == 'diproses' %}
+      {% with kebutuhan=p.pembayaran_yang_diperlukan %}
+      {% if kebutuhan %}
+        <a href="{% url 'pelanggan:upload_pembayaran' p.id %}" class="btn btn-success">
+          {% if kebutuhan.jenis == 'pelunasan' %}Lanjutkan Pelunasan{% else %}Bayar Sekarang{% endif %}
+        </a>
+      {% endif %}
+      {% endwith %}
+
+      {% if p.status == 'menunggu_pembayaran' or p.status == 'diproses' %}
         <form method="post" action="{% url 'pelanggan:batalkan_pesanan' p.id %}" onsubmit="return confirm('Batalkan pesanan {{ p.kode_pesanan }}?');">
           {% csrf_token %}
           <button type="submit" class="btn btn-danger-outline">Batalkan</button>

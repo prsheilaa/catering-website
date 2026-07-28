@@ -612,6 +612,12 @@ table.data tr:hover td { background: var(--paper-3); }
 .badge.batal    { background: var(--danger-soft); color: var(--danger); }
 .badge.kosong   { background: #E4E1D8; color: var(--text-muted); }
 
+/* Badge status pembayaran (belum bayar / DP / lunas) */
+.badge.bayar-belum   { background: var(--danger-soft); color: var(--danger); }
+.badge.bayar-proses  { background: var(--warning-soft); color: var(--warning); }
+.badge.bayar-dp      { background: var(--info-soft); color: var(--info); }
+.badge.bayar-lunas   { background: var(--success-soft); color: var(--success); }
+
 /* ===== Buttons ===== */
 .btn {
   display: inline-flex; align-items: center; gap: 8px;

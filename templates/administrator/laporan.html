@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load rupiah %}
 
 {% block title %}Laporan Administrator — Meja Nusantara{% endblock %}
 {% block brand_sub %}Panel Admin{% endblock %}
@@ -166,7 +167,7 @@ Pendapatan
 </div>
 <div class="stat-value">
 
-Rp {{ total_pendapatan|floatformat:0 }}
+{{ total_pendapatan|rupiah }}
 
 </div>
 
@@ -224,7 +225,7 @@ Export Excel
 <td>{{ item.kode_pesanan }}</td>
 <td>{{ item.pelanggan.username }}</td>
 <td>{{ item.menu.nama_paket }}</td>
-<td>Rp {{ item.total_harga|floatformat:0 }}</td>
+<td>{{ item.total_harga|rupiah }}</td>
 
 <td>
 

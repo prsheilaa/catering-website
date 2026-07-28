@@ -1,8 +1,63 @@
 {% extends "base.html" %}
+{% load rupiah %}
 
 {% block title %}Transaksi - Administrator{% endblock %}
 {% block topbar_title %}Transaksi{% endblock %}
 {% block topbar_role %}Administrator{% endblock %}
+
+{% block sidebar_nav %}
+
+<div class="nav-group">
+    <div class="nav-label">Ringkasan</div>
+
+    <a class="nav-link" href="{% url 'administrator:dashboard' %}">
+        Dashboard
+    </a>
+</div>
+
+<div class="nav-group">
+
+    <div class="nav-label">Katalog</div>
+
+    <a class="nav-link" href="{% url 'administrator:menu_list' %}">
+        Menu
+    </a>
+
+    <a class="nav-link" href="{% url 'administrator:kategori_list' %}">
+        Kategori
+    </a>
+
+    <a class="nav-link" href="{% url 'administrator:jenis_catering_list' %}">
+        Jenis Catering
+    </a>
+
+</div>
+
+<div class="nav-group">
+
+    <div class="nav-label">Operasional</div>
+
+    <a class="nav-link" href="{% url 'administrator:akun_list' %}">
+        Kelola Akun
+    </a>
+
+    <a class="nav-link active"
+       href="{% url 'administrator:transaksi_list' %}">
+
+        Transaksi
+
+    </a>
+
+    <a class="nav-link"
+       href="{% url 'administrator:laporan' %}">
+
+        Laporan
+
+    </a>
+
+</div>
+
+{% endblock %}
 
 {% block content %}
 
@@ -40,7 +95,7 @@
         <div class="ticket-body">
             <div class="stat-label">Total Transaksi</div>
             <div class="stat-value">
-                {{ total_transaksi }}
+                {{ transaksi|length }}
             </div>
         </div>
     </div>
@@ -96,7 +151,7 @@ type="text"
 name="q"
 class="form-control"
 placeholder="Cari kode pesanan atau pelanggan..."
-value="{{ q }}">
+value="{{ request.GET.q }}">
 
 <button
 class="btn btn-primary">
@@ -105,20 +160,9 @@ Cari
 
 </button>
 
-{% if q or status_filter %}
-<a href="{% url 'administrator:transaksi_list' %}" class="btn btn-ghost">Reset</a>
-{% endif %}
-
 </div>
 
 </form>
-
-<div class="filter-pills" style="margin-top:14px;">
-  <a href="?{% if q %}q={{ q }}{% endif %}" class="filter-pill {% if not status_filter %}active{% endif %}">Semua Status</a>
-  {% for value, label in status_choices %}
-  <a href="?status={{ value }}{% if q %}&q={{ q }}{% endif %}" class="filter-pill {% if status_filter == value %}active{% endif %}">{{ label }}</a>
-  {% endfor %}
-</div>
 
 </div>
 
@@ -134,7 +178,7 @@ Cari
 
     </div>
 
-{% if page_obj %}
+{% if transaksi %}
 
 <table class="data">
 
@@ -156,7 +200,7 @@ Cari
 
     <tbody>
 
-{% for pesanan in page_obj %}
+{% for pesanan in transaksi %}
 
 <tr>
 
@@ -194,7 +238,7 @@ Cari
 
 <td>
 
-Rp {{ pesanan.total_harga }}
+{{ pesanan.total_harga|rupiah }}
 
 </td>
 
@@ -268,24 +312,6 @@ Detail
 </tbody>
 
 </table>
-
-<div class="pagination">
-  <div class="pagination-count">
-    Menampilkan <strong>{{ page_obj.start_index }}</strong>–<strong>{{ page_obj.end_index }}</strong>
-    dari <strong>{{ page_obj.paginator.count }}</strong> transaksi
-  </div>
-  {% if page_obj.paginator.num_pages > 1 %}
-  <div class="pagination-links">
-    {% if page_obj.has_previous %}
-      <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&status={{ status_filter }}" class="btn btn-ghost">‹ Sebelumnya</a>
-    {% endif %}
-    <span class="pagination-current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
-    {% if page_obj.has_next %}
-      <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&status={{ status_filter }}" class="btn btn-ghost">Berikutnya ›</a>
-    {% endif %}
-  </div>
-  {% endif %}
-</div>
 
 {% else %}
 

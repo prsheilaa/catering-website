@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load rupiah %}
 {% block title %}Detail Pesanan — Meja Nusantara{% endblock %}
 {% block brand_sub %}Pelanggan{% endblock %}
 {% block topbar_title %}Detail Pesanan{% endblock %}
@@ -24,15 +25,31 @@
 <div class="panel" style="max-width:680px;">
   <div class="panel-head">
     <h3 style="margin:0;">Pesanan #{{ pesanan.kode_pesanan }}</h3>
-    {% if pesanan.status == 'menunggu_pembayaran' %}
-      <span class="badge menunggu">Menunggu Pembayaran</span>
-    {% elif pesanan.status == 'diproses' %}
-      <span class="badge diproses">Diproses</span>
-    {% elif pesanan.status == 'selesai' %}
-      <span class="badge selesai">Selesai</span>
-    {% else %}
-      <span class="badge batal">Dibatalkan</span>
-    {% endif %}
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      {% if pesanan.status == 'menunggu_pembayaran' %}
+        <span class="badge menunggu">Menunggu Pembayaran</span>
+      {% elif pesanan.status == 'diproses' %}
+        <span class="badge diproses">Diproses</span>
+      {% elif pesanan.status == 'selesai' %}
+        <span class="badge selesai">Selesai</span>
+      {% else %}
+        <span class="badge batal">Dibatalkan</span>
+      {% endif %}
+
+      {% if pesanan.status != 'dibatalkan' %}
+        {% if pesanan.status_pembayaran == 'belum_bayar' %}
+          <span class="badge bayar-belum">Belum Bayar</span>
+        {% elif pesanan.status_pembayaran == 'dp_menunggu_verifikasi' %}
+          <span class="badge bayar-proses">DP Menunggu Verifikasi</span>
+        {% elif pesanan.status_pembayaran == 'dp_terverifikasi' %}
+          <span class="badge bayar-dp">Sudah DP · Menunggu Pelunasan</span>
+        {% elif pesanan.status_pembayaran == 'pelunasan_menunggu_verifikasi' %}
+          <span class="badge bayar-proses">Pelunasan Menunggu Verifikasi</span>
+        {% elif pesanan.status_pembayaran == 'lunas' %}
+          <span class="badge bayar-lunas">Lunas</span>
+        {% endif %}
+      {% endif %}
+    </div>
   </div>
 
   <div class="spec-list">
@@ -52,37 +69,57 @@
     <div class="spec-row"><span class="spec-row-label">Alamat</span><span class="spec-row-value" style="text-align:right;">{{ pesanan.alamat }}</span></div>
     <div class="spec-row"><span class="spec-row-label">Waktu acara</span><span class="spec-row-value">{{ pesanan.waktu_acara|date:"d M Y, H:i" }}</span></div>
     <div class="spec-row"><span class="spec-row-label">Catatan</span><span class="spec-row-value">{{ pesanan.catatan_tambahan|default:"-" }}</span></div>
-    <div class="spec-row"><span class="spec-row-label">Total harga</span><span class="spec-row-value" style="color:var(--coral-rose);">Rp{{ pesanan.total_harga|floatformat:0 }}</span></div>
+    <div class="spec-row"><span class="spec-row-label">Total harga</span><span class="spec-row-value" style="color:var(--coral-rose);">{{ pesanan.total_harga|rupiah }}</span></div>
   </div>
 
   <h3 style="margin: 22px 0 10px;">Pembayaran</h3>
-  {% if pembayaran %}
-    <div class="payment-info-mini" style="display:block;">
+
+  {% if pesanan.wajib_dp %}
+    <div class="spec-list" style="margin-bottom:14px;">
+      <div class="spec-row"><span class="spec-row-label">DP ({{ pesanan.persen_dp }}%)</span><span class="spec-row-value">{{ pesanan.jumlah_dp|rupiah }}</span></div>
+      <div class="spec-row"><span class="spec-row-label">Sudah dibayar (terverifikasi)</span><span class="spec-row-value" style="color:var(--success);">{{ pesanan.total_dibayar|rupiah }}</span></div>
+      <div class="spec-row"><span class="spec-row-label">Sisa yang harus dilunasi</span><span class="spec-row-value" style="color:var(--coral-rose);">{{ pesanan.sisa_bayar|rupiah }}</span></div>
+    </div>
+  {% endif %}
+
+  {% if riwayat_pembayaran %}
+    {% for pembayaran in riwayat_pembayaran %}
+    <div class="payment-info-mini" style="display:block; margin-bottom:10px;">
       <div class="payment-info-mini-method" style="margin-bottom: 6px;">
+        <span class="pill-tag">{{ pembayaran.get_jenis_display }}</span>
         <span class="pill-tag">{{ pembayaran.get_metode_display }}</span>
         <span class="badge {% if pembayaran.status_verifikasi == 'valid' %}selesai{% elif pembayaran.status_verifikasi == 'tidak_valid' %}batal{% else %}menunggu{% endif %}">
           {{ pembayaran.get_status_verifikasi_display }}
         </span>
       </div>
-      {% if pembayaran.metode == 'transfer_bank' %}
-        <div>Transfer ke VA <span class="mono">{{ pesanan.virtual_account_number }}</span> — {{ bank_name }}</div>
-      {% elif pembayaran.metode == 'e_wallet' %}
-        <div>{{ ewallet_provider }} — <span class="mono">{{ ewallet_number }}</span></div>
-      {% elif pembayaran.metode == 'qris' %}
-        <div>QRIS — {{ qris_merchant_name }}</div>
-      {% else %}
-        <div>Dibayar tunai langsung ke petugas</div>
+      <div>Jumlah dibayar: <strong>{{ pembayaran.jumlah_bayar|rupiah }}</strong></div>
+      {% if pembayaran.status_verifikasi == 'tidak_valid' and pembayaran.catatan_verifikasi %}
+        <div style="margin-top:4px; color:var(--danger);">Catatan petugas: {{ pembayaran.catatan_verifikasi }}</div>
       {% endif %}
-      <div style="margin-top:4px;">Jumlah dibayar: <strong>Rp{{ pembayaran.jumlah_bayar|floatformat:0 }}</strong></div>
       {% if pembayaran.metode != 'tunai' and pembayaran.bukti_bayar %}
         <a href="{{ pembayaran.bukti_bayar.url }}" target="_blank" rel="noopener" class="payment-info-mini-link" style="display:inline-block; margin-top:8px;">Lihat bukti bayar ›</a>
       {% endif %}
     </div>
+    {% endfor %}
   {% else %}
     <p style="color: var(--text-muted); margin-bottom:14px;">Belum ada pembayaran untuk pesanan ini.</p>
-    {% if pesanan.status == 'menunggu_pembayaran' %}
-      <a href="{% url 'pelanggan:upload_pembayaran' pesanan.id %}" class="btn btn-gold">Upload Bukti Pembayaran</a>
-    {% endif %}
+  {% endif %}
+
+  {% if info_pembayaran %}
+    <div class="payment-info-mini" style="display:block; margin-top:4px; background:var(--info-soft);">
+      <div style="margin-bottom:8px;">
+        {% if info_pembayaran.jenis == 'pelunasan' %}
+          Pesanan ini sudah DP dan siap dilunasi. Silakan lunasi sisa pembayaran sebesar
+          <strong>{{ info_pembayaran.jumlah|rupiah }}</strong>.
+        {% else %}
+          Silakan lakukan pembayaran {{ info_pembayaran.label|lower }} sebesar
+          <strong>{{ info_pembayaran.jumlah|rupiah }}</strong>.
+        {% endif %}
+      </div>
+      <a href="{% url 'pelanggan:upload_pembayaran' pesanan.id %}" class="btn btn-gold">
+        {% if info_pembayaran.jenis == 'pelunasan' %}Lanjutkan ke Pelunasan{% else %}Upload Bukti Pembayaran{% endif %}
+      </a>
+    </div>
   {% endif %}
 
   <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:22px;">

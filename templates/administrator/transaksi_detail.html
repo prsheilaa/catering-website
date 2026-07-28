@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load rupiah %}
 
 {% block title %}Detail Transaksi{% endblock %}
 {% block topbar_title %}Detail Transaksi{% endblock %}
@@ -83,7 +84,7 @@
             <th>Total Harga</th>
             <td>
                 <strong>
-                    Rp {{ pesanan.total_harga }}
+                    {{ pesanan.total_harga|rupiah }}
                 </strong>
             </td>
         </tr>
@@ -264,7 +265,7 @@
 
                 <strong>
 
-                    Rp {{ pembayaran.jumlah_bayar }}
+                    {{ pembayaran.jumlah_bayar|rupiah }}
 
                 </strong>
 

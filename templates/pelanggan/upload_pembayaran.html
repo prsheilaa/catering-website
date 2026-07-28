@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load rupiah %}
 {% block title %}Upload Bukti Pembayaran — Meja Nusantara{% endblock %}
 {% block brand_sub %}Pelanggan{% endblock %}
 {% block topbar_title %}Pembayaran{% endblock %}
@@ -6,10 +7,20 @@
 {% block content %}
 <div class="page-head">
   <div>
-    <h1>Upload Bukti Pembayaran</h1>
-    <p>Pesanan <strong class="mono">{{ pesanan.kode_pesanan }}</strong> — Total
-      <strong class="mono">Rp{{ pesanan.total_harga|floatformat:0 }}</strong>
+    <h1>Upload Bukti {{ info_pembayaran.label|default:"Pembayaran" }}</h1>
+    <p>
+      Pesanan <strong class="mono">{{ pesanan.kode_pesanan }}</strong>
+      {% if info_pembayaran.jenis == 'pelunasan' %}
+        — Total pesanan <strong class="mono">{{ pesanan.total_harga|rupiah }}</strong>,
+        sisa yang harus dilunasi <strong class="mono">{{ info_pembayaran.jumlah|rupiah }}</strong>
+      {% else %}
+        — {{ info_pembayaran.label|default:"Total" }}
+        <strong class="mono">{{ info_pembayaran.jumlah|default:pesanan.total_harga|rupiah }}</strong>
+      {% endif %}
     </p>
+    {% if info_pembayaran.jenis == 'pelunasan' %}
+    <p style="color:var(--info); margin-top:4px;">DP Anda sudah terverifikasi. Ini adalah pembayaran pelunasan sisa tagihan.</p>
+    {% endif %}
   </div>
 </div>
 
@@ -57,7 +68,7 @@
             <div class="payment-target-value">Meja Nusantara Catering</div>
           </div>
         </div>
-        <p class="payment-target-note">Transfer sesuai nominal total pesanan ke nomor Virtual Account di atas melalui ATM, m-banking, atau internet banking.</p>
+        <p class="payment-target-note">Transfer sebesar <strong>{{ info_pembayaran.jumlah|default:pesanan.total_harga|rupiah }}</strong> ke nomor Virtual Account di atas melalui ATM, m-banking, atau internet banking.</p>
       </div>
 
       <div class="payment-target" data-target="e_wallet" hidden>
@@ -85,12 +96,12 @@
 
       <div class="payment-target" data-target="qris" hidden>
         <div class="payment-target-qris">
-          <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data={{ qris_merchant_name|urlencode }}%20-%20{{ pesanan.kode_pesanan|urlencode }}%20-%20Rp{{ pesanan.total_harga|floatformat:0 }}"
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data={{ qris_merchant_name|urlencode }}%20-%20{{ pesanan.kode_pesanan|urlencode }}%20-%20Rp{{ info_pembayaran.jumlah|default:pesanan.total_harga|floatformat:0 }}"
                alt="QRIS {{ qris_merchant_name }}" width="200" height="200">
           <div>
             <div class="payment-target-label">Atas nama merchant</div>
             <div class="payment-target-value">{{ qris_merchant_name }}</div>
-            <p class="payment-target-note">Pindai kode QRIS ini memakai aplikasi bank atau e-wallet mana pun, pastikan nominal sesuai total pesanan.</p>
+            <p class="payment-target-note">Pindai kode QRIS ini memakai aplikasi bank atau e-wallet mana pun, pastikan nominal sesuai {{ info_pembayaran.jumlah|default:pesanan.total_harga|rupiah }}.</p>
           </div>
         </div>
       </div>
@@ -100,7 +111,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2.5"></circle></svg>
           <div>
             <div class="payment-target-value">Bayar tunai langsung ke petugas</div>
-            <p class="payment-target-note">Tidak perlu mengunggah bukti pembayaran. Siapkan uang pas senilai <strong>Rp{{ pesanan.total_harga|floatformat:0 }}</strong> saat pesanan diantar/diambil.</p>
+            <p class="payment-target-note">Tidak perlu mengunggah bukti pembayaran. Siapkan uang pas senilai <strong>{{ info_pembayaran.jumlah|default:pesanan.total_harga|rupiah }}</strong> ({{ info_pembayaran.label|default:"pembayaran" }}) saat pesanan diantar/diambil atau saat petugas menghubungi Anda.</p>
           </div>
         </div>
       </div>

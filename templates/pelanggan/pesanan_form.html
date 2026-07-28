@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load rupiah %}
 {% block title %}Buat Pesanan — Meja Nusantara{% endblock %}
 {% block brand_sub %}Pelanggan{% endblock %}
 {% block topbar_title %}Buat Pesanan{% endblock %}
@@ -51,7 +52,7 @@
             <div class="menu-pick-card-body">
               <div class="menu-pick-card-cat">{{ m.kategori.nama }}</div>
               <div class="menu-pick-card-name">{{ m.nama_paket }}</div>
-              <div class="menu-pick-card-price">Rp{{ m.harga_per_porsi|floatformat:0 }} / porsi</div>
+              <div class="menu-pick-card-price">{{ m.harga_per_porsi|rupiah }} / porsi</div>
               <select name="paket_{{ m.id }}" class="menu-pick-card-select sel-paket">
                 <option value="">— Pilih paket porsi —</option>
                 {% for nilai, label in paket_pilihan %}

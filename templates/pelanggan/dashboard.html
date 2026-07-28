@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load rupiah %}
 {% block title %}Dashboard — Meja Nusantara{% endblock %}
 {% block brand_sub %}Pelanggan{% endblock %}
 {% block topbar_title %}Dashboard{% endblock %}
@@ -84,7 +85,7 @@
         <div class="reco-card-body">
           <div class="reco-card-cat">{{ menu.kategori.nama }}</div>
           <div class="reco-card-name">{{ menu.nama_paket }}</div>
-          <div class="reco-card-price">Rp{{ menu.harga_per_porsi|floatformat:0 }} / porsi</div>
+          <div class="reco-card-price">{{ menu.harga_per_porsi|rupiah }} / porsi</div>
         </div>
       </a>
       {% endfor %}
